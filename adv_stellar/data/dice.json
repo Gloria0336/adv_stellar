@@ -1,0 +1,19 @@
+{
+  "_doc": "判定規則。任何 LLM 依此裁定，確保跨平台一致。",
+  "core": "2d6+mod",
+  "bands": {
+    "full_success": { "min": 10, "label": "完全成功", "desc": "達成目標，無額外代價" },
+    "partial_success": { "min": 7, "max": 9, "label": "成功有代價", "desc": "達成，但伴隨損耗/風險/複雜化（GM 必給）" },
+    "failure": { "max": 6, "label": "失敗", "desc": "未達成或情況惡化" }
+  },
+  "mod_caps": {
+    "attribute": [0, 3],
+    "situational": [1, 2],
+    "ability_conditional": "由特定能力提供，條件式，不疊破上限"
+  },
+  "advantage": "roll 3d6 keep highest 2",
+  "disadvantage": "roll 3d6 keep lowest 2",
+  "roll_owner": "player",
+  "gm_announces": ["情境難度說明", "修正值明細"],
+  "applies_to": ["戰鬥", "採集", "社交", "研究", "駕駛", "修理", "母艦防衛"]
+}

@@ -1,0 +1,11 @@
+{
+  "_doc": "技能星網進度與變異解析狀態。規則見 data/skills.json。",
+  "unlocked_nodes": ["origin"],
+  "available_points": 1,
+  "variant_analysis": {
+    "foresight": "locked", "pyroflux": "locked", "netmind": "locked",
+    "symbiosis": "locked", "anomaly_sense": "locked"
+  },
+  "deep_mutation_chosen": null,
+  "equipment": []
+}

@@ -1,0 +1,32 @@
+{
+  "_doc": "物種模板。態度可改善；『天外即惡』為共同文化底色。好戰種的真相受 canon hidden 約束。",
+  "culture_baseline": "天外即惡——傳送/資源/生命皆源於行星本身，星球之外者皆視為威脅。",
+
+  "species": {
+    "placeholder_neutral": {
+      "name": "（待命名）守土者",
+      "disposition_start": "戒備",
+      "traits": ["定居型", "重視土地與傳承"],
+      "recruitable": true,
+      "recruit_roles": ["工程", "守衛"],
+      "note": "P0 中性可改善物種範例；外交提升後可交易/招募"
+    },
+    "placeholder_psionic": {
+      "name": "（待命名）共鳴族",
+      "disposition_start": "好奇但謹慎",
+      "traits": ["天生超常（精神共鳴）", "對異能者較親近"],
+      "recruitable": true,
+      "recruit_roles": ["異能者", "研究"],
+      "special": "可提供共生/網識相關獨特能力或專屬模塊",
+      "note": "奇幻種範例（軟層 b）"
+    },
+    "warlike_hidden": {
+      "name": "（待命名）好戰種",
+      "disposition_start": "敵意",
+      "traits": ["好戰", "視外來者為必除之惡"],
+      "recruitable": false,
+      "hidden_truth": "曾引動星系級力量並對主角的船負有責任，隨後失控（受 canon/rift_tide.json 約束，達 unlock 前不得揭露）",
+      "note": "前期僅呈現為敵對勢力，不得點名其與裂潮的關聯"
+    }
+  }
+}

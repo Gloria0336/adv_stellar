@@ -1,0 +1,32 @@
+{
+  "_doc": "模塊定義。放置兩層策略：①格位地形(tile_fit) ②相鄰combo。type: energy/production/research/habitat/defense/special。",
+
+  "tile_traits": {
+    "spine":   { "name": "船脊・動力幹線", "fit_bonus": "energy/高耗能模塊 Flux 吞吐+", "note": "稀少" },
+    "hull_edge": { "name": "船殼緣", "fit_required": ["defense","sensor"], "note": "有對外射界；受攻擊先被打" },
+    "core":    { "name": "核心內艙", "fit_bonus": "受保護(休眠/關鍵研究/指揮)", "note": "無對外通道" },
+    "breach":  { "name": "破損區", "note": "便宜快速；不穩定，需先穩固否則觸發災害" },
+    "coolant": { "name": "冷卻區", "fit_bonus": "熱源放此避免輻射擴散" }
+  },
+
+  "modules": {
+    "reactor_emergency": { "name": "應急能源核心", "type": "energy", "size": [1,1], "produces": { "flux": 3 }, "tech_req": null, "note": "起始；僅夠維持生命維持/醫療/休眠" },
+    "reactor_main": { "name": "主反應爐", "type": "energy", "size": [2,2], "produces": { "flux": 20 }, "tech_req": "reactor_restore", "best_tile": "spine",
+      "adjacency": [ { "with_type": "production", "bonus": { "output_pct": 15 } }, { "with_type": "habitat", "penalty": { "output_pct": -20, "reason": "輻射" } } ] },
+    "life_support": { "name": "生命維持系統", "type": "habitat", "size": [1,1], "tech_req": null, "provides": { "pop_cap": 8 }, "note": "起始降載；修復後逐步逼近 200" },
+    "medbay": { "name": "醫療艙", "type": "habitat", "size": [1,1], "tech_req": null, "best_tile": "core" },
+    "cryo": { "name": "休眠艙", "type": "habitat", "size": [1,1], "tech_req": null, "best_tile": "core", "note": "內含通訊官＋科學家" },
+    "refinery": { "name": "精煉工坊", "type": "production", "size": [1,1], "produces": { "alloy": 4 }, "tech_req": "alloy_refine" },
+    "lab_adv": { "name": "研究/實驗艙", "type": "research", "size": [1,1], "produces": { "data": 3 }, "tech_req": "research_adv", "best_tile": "core",
+      "adjacency": [ { "with_type": "research", "bonus": { "speed_pct": 10 } } ] },
+    "turret": { "name": "自動砲塔", "type": "defense", "size": [1,1], "tech_req": "defense_frame", "fit_required_tile": "hull_edge", "note": "裂潮防衛；無射界則失效" },
+    "shield_node": { "name": "力場節點", "type": "defense", "size": [1,1], "tech_req": "defense_frame", "best_tile": "hull_edge" },
+    "hydroponics": { "name": "水耕艙", "type": "production", "size": [1,1], "produces": { "food": 5 }, "tech_req": "xeno_biology" },
+    "capacitor": { "name": "能源儲存", "type": "energy", "size": [1,1], "stores": { "flux": 30 }, "tech_req": "power_storage" }
+  },
+
+  "set_bonuses": [
+    { "id": "fusion_power", "requires": ["reactor_main","capacitor","resonance_core"], "condition": "all_adjacent", "effect": { "global_flux_pct": 40 }, "note": "resonance_core 為後期特殊模塊（待擴充）" },
+    { "id": "fortified_edge", "requires": ["turret","shield_node"], "condition": "adjacent_on_hull_edge", "effect": { "defense_pct": 25 } }
+  ]
+}

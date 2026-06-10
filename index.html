@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星際漂流 · 艦橋監控</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void: #080C14;
+  --hull: #0E1724;
+  --hull-2: #162030;
+  --hull-3: #1E2D40;
+  --border: #253548;
+  --signal: #6AADDC;
+  --signal-dim: #2A4D6A;
+  --rift: #DC7A3A;
+  --rift-dim: #5A2E10;
+  --life: #3ADCA0;
+  --life-dim: #0A4030;
+  --warn: #DCC04A;
+  --warn-dim: #4A3A10;
+  --dead: #DC4A4A;
+  --text: #B8C8DC;
+  --text-dim: #4A6080;
+  --text-faint: #243040;
+  --locked: #0A0F18;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--void); color: var(--text); font-family: var(--font-head); font-size: 14px; line-height: 1.5; }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--hull); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ─── HEADER ─── */
+.app-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 24px; height: 52px;
+  background: var(--hull); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.ship-name { font-size: 16px; font-weight: 600; letter-spacing: .04em; color: var(--signal); }
+.header-chips { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; }
+.chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 2px 10px; border-radius: 3px; font-family: var(--font-data);
+  font-size: 11px; font-weight: 500; border: 1px solid transparent;
+}
+.chip-repair { background: rgba(106,173,220,.08); border-color: var(--signal-dim); color: var(--signal); }
+.chip-rift   { background: rgba(220,122,58,.08);  border-color: var(--rift-dim);   color: var(--rift); }
+.chip-flux   { background: rgba(58,220,160,.08);  border-color: var(--life-dim);   color: var(--life); }
+.chip-warn   { background: rgba(220,192,74,.08);  border-color: var(--warn-dim);   color: var(--warn); }
+.header-ts { margin-left: auto; font-family: var(--font-data); font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+
+/* ─── TABS ─── */
+.tab-bar {
+  display: flex; padding: 0 24px; gap: 2px;
+  background: var(--hull); border-bottom: 1px solid var(--border);
+  position: sticky; top: 52px; z-index: 90;
+}
+.tab-btn {
+  padding: 10px 16px; background: none; border: none; cursor: pointer;
+  font-family: var(--font-head); font-size: 13px; font-weight: 500;
+  color: var(--text-dim); letter-spacing: .03em;
+  border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--signal); border-bottom-color: var(--signal); }
+
+/* ─── PANELS ─── */
+.panel { display: none; padding: 24px; max-width: 1200px; margin: 0 auto; }
+.panel.active { display: block; }
+
+/* ─── GRID LAYOUT HELPERS ─── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+
+/* ─── CARD ─── */
+.card {
+  background: var(--hull); border: 1px solid var(--border); border-radius: 6px; padding: 16px;
+}
+.card-title {
+  font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px;
+}
+.card-title span { color: var(--signal); }
+
+/* ─── METERS ─── */
+.meter-row { display: flex; flex-direction: column; gap: 8px; }
+.meter-item { display: flex; flex-direction: column; gap: 3px; }
+.meter-label { display: flex; justify-content: space-between; font-size: 11px; font-family: var(--font-data); color: var(--text-dim); }
+.meter-label .val { color: var(--text); }
+.meter-bar { height: 4px; background: var(--hull-3); border-radius: 2px; overflow: hidden; }
+.meter-fill { height: 100%; border-radius: 2px; transition: width .4s; }
+.fill-signal { background: var(--signal); }
+.fill-life   { background: var(--life); }
+.fill-rift   { background: var(--rift); }
+.fill-warn   { background: var(--warn); }
+.fill-dead   { background: var(--dead); }
+
+/* ─── STAT GRID ─── */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat-cell { background: var(--hull-2); border-radius: 4px; padding: 10px; }
+.stat-key { font-size: 10px; font-family: var(--font-data); color: var(--text-dim); margin-bottom: 2px; }
+.stat-val { font-size: 20px; font-family: var(--font-data); font-weight: 500; color: var(--text); }
+.stat-unit { font-size: 10px; color: var(--text-dim); }
+
+/* ─── STATUS BADGES ─── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 2px; font-size: 10px;
+  font-family: var(--font-data); font-weight: 500;
+}
+.badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+.badge-active { background: rgba(58,220,160,.12); color: var(--life); border: 1px solid var(--life-dim); }
+.badge-active::before { background: var(--life); box-shadow: 0 0 4px var(--life); animation: pulse 1.8s infinite; }
+.badge-cryo   { background: rgba(106,173,220,.1); color: var(--signal); border: 1px solid var(--signal-dim); }
+.badge-cryo::before { background: var(--signal); }
+.badge-locked { background: rgba(220,74,74,.1); color: var(--dead); border: 1px solid #401010; }
+.badge-locked::before { background: var(--dead); }
+.badge-warn   { background: rgba(220,192,74,.1); color: var(--warn); border: 1px solid var(--warn-dim); }
+.badge-warn::before { background: var(--warn); animation: pulse 2.4s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ─── MISSION ROWS ─── */
+.mission-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--hull-3); }
+.mission-row:last-child { border-bottom: none; }
+.mission-layer { font-size: 10px; color: var(--text-dim); font-family: var(--font-data); width: 36px; flex-shrink: 0; }
+.mission-desc { flex: 1; font-size: 12px; }
+.mission-status { flex-shrink: 0; }
+
+/* ─── SHIP DECK ─── */
+.deck-layout { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.deck-grid-wrap { flex-shrink: 0; }
+.deck-grid { display: grid; grid-template-columns: repeat(6, 58px); gap: 3px; }
+.deck-cell {
+  width: 58px; height: 52px; border-radius: 4px; border: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; cursor: pointer; transition: border-color .15s, background .15s;
+  position: relative; overflow: hidden; background: var(--hull);
+}
+.deck-cell:hover { border-color: var(--signal); z-index: 5; }
+.deck-cell.locked {
+  background: var(--locked); border-color: var(--text-faint); cursor: default;
+  overflow: hidden;
+}
+.deck-cell.locked::after {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(106,173,220,.03) 6px, rgba(106,173,220,.03) 7px);
+  animation: scan 4s linear infinite;
+}
+@keyframes scan {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+.deck-cell.selected { border-color: var(--signal); box-shadow: 0 0 0 1px var(--signal); }
+.cell-type-icon { font-size: 14px; line-height: 1; }
+.cell-label { font-size: 9px; font-family: var(--font-data); text-align: center; color: var(--text-dim); max-width: 52px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* tile trait overlays */
+.trait-spine   { border-left: 2px solid var(--warn) !important; }
+.trait-hull_edge { border-right: 2px solid var(--dead) !important; }
+.trait-core    { box-shadow: inset 0 0 8px rgba(106,173,220,.15); }
+.trait-breach  { border-style: dashed !important; }
+.trait-coolant { border-top: 2px solid var(--signal) !important; }
+/* module type tinting */
+.mod-energy   { background: rgba(220,122,58,.12); }
+.mod-habitat  { background: rgba(58,220,160,.08); }
+.mod-research { background: rgba(106,173,220,.10); }
+.mod-defense  { background: rgba(220,74,74,.10); }
+.mod-storage  { background: rgba(154,122,220,.10); }
+.mod-utility  { background: rgba(122,220,106,.08); }
+.mod-command  { background: rgba(220,192,74,.10); }
+
+.deck-detail {
+  flex: 1; min-width: 220px; background: var(--hull); border: 1px solid var(--border);
+  border-radius: 6px; padding: 16px;
+}
+.deck-detail-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.deck-detail-kv { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.kv-row { display: flex; gap: 8px; }
+.kv-key { font-size: 10px; font-family: var(--font-data); color: var(--text-dim); width: 64px; flex-shrink: 0; }
+.kv-val { font-size: 11px; font-family: var(--font-data); color: var(--text); }
+.deck-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-dim); }
+.legend-swatch { width: 10px; height: 10px; border-radius: 2px; border: 1px solid var(--border); }
+
+/* ─── SKILL TREE ─── */
+.skill-layout { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.skill-svg-wrap { flex-shrink: 0; }
+.skill-detail { flex: 1; min-width: 220px; background: var(--hull); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+.skill-node { cursor: pointer; }
+.skill-node circle { transition: r .15s, opacity .15s; }
+.skill-node:hover circle { r: 20; }
+.skill-node.unlocked text { fill: #fff; }
+.skill-node.locked text { fill: var(--text-dim); }
+.deep-mutations { margin-top: 20px; background: var(--hull); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+.deep-title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+.deep-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.deep-card {
+  background: var(--hull-2); border: 1px solid var(--border); border-radius: 4px; padding: 12px;
+  cursor: pointer; transition: border-color .15s;
+}
+.deep-card:hover { border-color: var(--signal); }
+.deep-card.chosen { border-color: var(--warn); background: rgba(220,192,74,.06); }
+.deep-card.locked-deep { opacity: .45; }
+.deep-card-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+.deep-card-stance { font-size: 10px; font-family: var(--font-data); color: var(--text-dim); margin-bottom: 6px; }
+.deep-card-effect { font-size: 11px; color: var(--text-dim); }
+.exclusive-note { font-size: 10px; color: var(--rift); font-family: var(--font-data); margin-bottom: 8px; }
+
+/* ─── TECH TREE ─── */
+.tech-domains { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+@media (max-width: 900px) { .tech-domains { grid-template-columns: repeat(2,1fr); } }
+.tech-domain { background: var(--hull); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+.domain-title { font-size: 12px; font-weight: 600; letter-spacing: .05em; margin-bottom: 12px; color: var(--signal); }
+.tech-node {
+  background: var(--hull-2); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px;
+  margin-bottom: 8px; position: relative; cursor: pointer; transition: border-color .15s;
+}
+.tech-node:hover { border-color: var(--signal); }
+.tech-node.unlocked { border-left: 3px solid var(--life); }
+.tech-node.available { border-left: 3px solid var(--signal); }
+.tech-node.locked { border-left: 3px solid var(--border); opacity: .65; }
+.tech-node-name { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+.tech-node-meta { font-size: 10px; font-family: var(--font-data); color: var(--text-dim); }
+.tech-prereq { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; padding-left: 12px; }
+.tech-prereq::before { content: '└'; color: var(--border); font-size: 10px; }
+
+/* ─── CREW ─── */
+.crew-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.crew-card {
+  background: var(--hull); border: 1px solid var(--border); border-radius: 6px; padding: 16px;
+}
+.crew-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.crew-name { font-size: 15px; font-weight: 600; }
+.crew-role { font-size: 11px; font-family: var(--font-data); color: var(--text-dim); margin-bottom: 8px; }
+.crew-hook { font-size: 11px; color: var(--text-dim); line-height: 1.6; border-top: 1px solid var(--hull-3); padding-top: 8px; margin-top: 8px; }
+
+/* ─── LOG ─── */
+.log-section { background: var(--hull); border: 1px solid var(--border); border-radius: 6px; padding: 20px; margin-bottom: 16px; }
+.log-section-title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+.log-text { font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-wrap; font-family: var(--font-data); }
+
+/* ─── LOADING ─── */
+.loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; gap: 12px; color: var(--text-dim); font-family: var(--font-data); font-size: 12px; }
+.loading-bar { width: 160px; height: 2px; background: var(--hull-3); border-radius: 1px; overflow: hidden; }
+.loading-fill { height: 100%; background: var(--signal); width: 30%; animation: load-pulse 1.4s ease-in-out infinite; }
+@keyframes load-pulse { 0%{transform:translateX(-100%)} 100%{transform:translateX(500%)} }
+
+/* ─── DIVIDER ─── */
+.section-gap { margin-top: 20px; }
+.sep { height: 1px; background: var(--hull-3); margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="ship-name" id="hdr-name">星際漂流 · 艦橋監控</div>
+  <div class="header-chips">
+    <span class="chip chip-repair" id="chip-repair">修復 —%</span>
+    <span class="chip chip-flux"   id="chip-flux">FLUX —</span>
+    <span class="chip chip-rift"   id="chip-rift">裂潮威脅 —</span>
+    <span class="chip chip-warn"   id="chip-compat">相容性 —</span>
+  </div>
+  <div class="header-ts" id="hdr-ts">載入中…</div>
+</header>
+
+<nav class="tab-bar">
+  <button class="tab-btn active" data-tab="overview">概覽</button>
+  <button class="tab-btn" data-tab="deck">甲板</button>
+  <button class="tab-btn" data-tab="skills">技能</button>
+  <button class="tab-btn" data-tab="tech">科技</button>
+  <button class="tab-btn" data-tab="crew">船員</button>
+  <button class="tab-btn" data-tab="log">日誌</button>
+</nav>
+
+<!-- ════ OVERVIEW ════ -->
+<div id="tab-overview" class="panel active">
+  <div id="overview-content">
+    <div class="loading"><div class="loading-bar"><div class="loading-fill"></div></div>載入遊戲資料…</div>
+  </div>
+</div>
+
+<!-- ════ DECK ════ -->
+<div id="tab-deck" class="panel">
+  <div id="deck-content">
+    <div class="loading"><div class="loading-bar"><div class="loading-fill"></div></div>載入甲板配置…</div>
+  </div>
+</div>
+
+<!-- ════ SKILLS ════ -->
+<div id="tab-skills" class="panel">
+  <div id="skills-content">
+    <div class="loading"><div class="loading-bar"><div class="loading-fill"></div></div>載入技能星網…</div>
+  </div>
+</div>
+
+<!-- ════ TECH ════ -->
+<div id="tab-tech" class="panel">
+  <div id="tech-content">
+    <div class="loading"><div class="loading-bar"><div class="loading-fill"></div></div>載入科技樹…</div>
+  </div>
+</div>
+
+<!-- ════ CREW ════ -->
+<div id="tab-crew" class="panel">
+  <div id="crew-content">
+    <div class="loading"><div class="loading-bar"><div class="loading-fill"></div></div>載入船員資料…</div>
+  </div>
+</div>
+
+<!-- ════ LOG ════ -->
+<div id="tab-log" class="panel">
+  <div id="log-content">
+    <div class="loading"><div class="loading-bar"><div class="loading-fill"></div></div>載入航行紀錄…</div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const RAW = 'https://raw.githubusercontent.com/Gloria0336/adv_stellar/main/adv_stellar/';
+
+// ─── Tab switching ───────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ─── Fetch helpers ───────────────────────────────────────────────────────────
+async function fetchJSON(path) {
+  const r = await fetch(RAW + path + '?t=' + Date.now());
+  if (!r.ok) throw new Error(path + ' ' + r.status);
+  return r.json();
+}
+async function fetchText(path) {
+  const r = await fetch(RAW + path + '?t=' + Date.now());
+  if (!r.ok) throw new Error(path + ' ' + r.status);
+  return r.text();
+}
+
+// ─── Boot ────────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    const [core, ship, character, crew, modules, skills, tech, summary, scene] = await Promise.all([
+      fetchJSON('state/core.json'),
+      fetchJSON('state/ship.json'),
+      fetchJSON('state/character.json'),
+      fetchJSON('state/crew.json'),
+      fetchJSON('data/modules.json'),
+      fetchJSON('data/skills.json'),
+      fetchJSON('data/tech.json'),
+      fetchText('session/summary.md'),
+      fetchText('session/current_scene.md'),
+    ]);
+
+    document.getElementById('hdr-ts').textContent = '更新：' + new Date().toLocaleString('zh-TW', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+
+    renderHeader(core);
+    renderOverview(core, ship);
+    renderDeck(ship, modules, character);
+    renderSkills(skills, character);
+    renderTech(tech, character);
+    renderCrew(crew);
+    renderLog(summary, scene);
+  } catch (e) {
+    console.error(e);
+    document.querySelectorAll('.loading').forEach(el => {
+      el.textContent = '資料載入失敗：' + e.message;
+    });
+  }
+})();
+
+// ─── Header chips ─────────────────────────────────────────────────────────────
+function renderHeader(core) {
+  const repair = core.ship_repair;
+  const pct = Math.round((Object.values(repair).filter(v => typeof v === 'number').reduce((a,b)=>a+b,0) / (repair.target * (Object.keys(repair).length-1))) * 100);
+  document.getElementById('chip-repair').textContent = `修復 ${Math.min(pct,99)}%`;
+  document.getElementById('chip-flux').textContent = `FLUX ${core.resources?.flux ?? '—'}`;
+  const riftLv = ['低','低','中','高','危急'][core.rift_tide?.threat_level ?? 0] || '未知';
+  document.getElementById('chip-rift').textContent = `裂潮 ${riftLv}`;
+  document.getElementById('chip-compat').textContent = `傳送相容 ${core.transport_compat ?? 0}`;
+}
+
+// ─── Overview ─────────────────────────────────────────────────────────────────
+function renderOverview(core, ship) {
+  const r = core.resources ?? {};
+  const sr = core.ship_repair ?? {};
+  const resources = [
+    { k:'FLUX（能源）', v:r.flux??0, max:50, color:'fill-rift' },
+    { k:'ALLOY（合金）', v:r.alloy??0, max:100, color:'fill-signal' },
+    { k:'DATA（資料）', v:r.data??0, max:100, color:'fill-signal' },
+    { k:'FUEL（燃料）', v:r.fuel??0, max:20, color:'fill-warn' },
+    { k:'FOOD（口糧）', v:r.food??0, max:20, color:'fill-life' },
+    { k:'ANOMALY（異象）', v:r.anomaly??0, max:50, color:'fill-life' },
+  ];
+  const repairItems = [
+    { k:'船殼（HULL）', v:sr.hull??0, max:100 },
+    { k:'反應爐（REACTOR）', v:sr.reactor??0, max:100 },
+    { k:'實驗艙（LAB）', v:sr.lab??0, max:100 },
+    { k:'生命維持（LIFE）', v:sr.life_support??0, max:100 },
+  ];
+  const char = core.character ?? {};
+  const missions = [
+    { layer:'表層', desc:'修好飛船、返回原點', status: sr.hull > 80 ? 'active' : 'warn' },
+    { layer:'中層', desc:'科研探索・取得 GE 成果', status: core.mission?.mid === 'gather_ge' ? 'active' : 'locked' },
+    { layer:'裏層', desc:'探索星系級力量的真相', status: core.mission?.deep === 'locked' ? 'locked' : 'warn' },
+  ];
+  const statusMap = { active:'active', warn:'warn', locked:'locked' };
+  const statusLabel = { active:'進行中', warn:'部分完成', locked:'未解鎖' };
+
+  document.getElementById('overview-content').innerHTML = `
+<div class="grid-2" style="margin-bottom:16px">
+  <div class="card">
+    <div class="card-title">角色狀態</div>
+    <div class="stat-grid">
+      <div class="stat-cell"><div class="stat-key">等級</div><div class="stat-val">${char.level??1}</div></div>
+      <div class="stat-cell"><div class="stat-key">HP</div><div class="stat-val">${char.hp??30}</div></div>
+      <div class="stat-cell"><div class="stat-key">PSI</div><div class="stat-val">${char.psi??10}</div></div>
+      <div class="stat-cell"><div class="stat-key">技能點</div><div class="stat-val">${core.skill_points??0}</div></div>
+      <div class="stat-cell"><div class="stat-key">科技點</div><div class="stat-val">${core.tech_points??0}</div></div>
+      <div class="stat-cell"><div class="stat-key">EXP</div><div class="stat-val">${char.exp??0}</div></div>
+    </div>
+    <div class="sep"></div>
+    <div class="card-title">屬性</div>
+    <div class="stat-grid">
+      ${Object.entries(core.attributes??{}).map(([k,v])=>`<div class="stat-cell"><div class="stat-key">${k.toUpperCase()}</div><div class="stat-val">${v}</div></div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">任務目標</div>
+    ${missions.map(m=>`
+      <div class="mission-row">
+        <span class="mission-layer">${m.layer}</span>
+        <span class="mission-desc">${m.desc}</span>
+        <span class="mission-status"><span class="badge badge-${statusMap[m.status]}">${statusLabel[m.status]}</span></span>
+      </div>`).join('')}
+    <div class="sep"></div>
+    <div class="card-title">位置</div>
+    <div style="font-family:var(--font-data);font-size:11px;color:var(--text-dim)">
+      <span style="color:var(--signal)">${core.location?.region??'—'}</span>
+      &nbsp;/&nbsp;${core.location?.planet??'—'}
+      &nbsp;/&nbsp;${core.location?.node??'—'}
+    </div>
+    <div class="sep"></div>
+    <div class="card-title">生還者</div>
+    ${Object.entries(core.survivors??{}).map(([id,st])=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:12px">${id==='comms_officer'?'通訊官':'科學家'}</span>
+        <span class="badge ${st.includes('cryo')?'badge-cryo':'badge-active'}">${st==='cryo_critical'?'休眠・重傷':st}</span>
+      </div>`).join('')}
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">資源庫存</div>
+    <div class="meter-row">
+      ${resources.map(res=>`
+        <div class="meter-item">
+          <div class="meter-label"><span>${res.k}</span><span class="val">${res.v} / ${res.max}</span></div>
+          <div class="meter-bar"><div class="meter-fill ${res.color}" style="width:${Math.min(100,(res.v/res.max)*100)}%"></div></div>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">飛船修復進度 <span>目標: ${sr.target??100}</span></div>
+    <div class="meter-row">
+      ${repairItems.map(item=>`
+        <div class="meter-item">
+          <div class="meter-label"><span>${item.k}</span><span class="val">${item.v}%</span></div>
+          <div class="meter-bar"><div class="meter-fill ${item.v>60?'fill-life':item.v>20?'fill-warn':'fill-dead'}" style="width:${item.v}%"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="sep"></div>
+    <div class="card-title">傳送相容性</div>
+    <div class="meter-item">
+      <div class="meter-label"><span>TRANSPORT COMPAT</span><span class="val">${core.transport_compat??0} / 100</span></div>
+      <div class="meter-bar"><div class="meter-fill fill-signal" style="width:${core.transport_compat??0}%"></div></div>
+    </div>
+    <div class="sep"></div>
+    <div class="card-title">裂潮威脅</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="meter-bar" style="flex:1"><div class="meter-fill fill-rift" style="width:${(core.rift_tide?.threat_level??1)*20}%"></div></div>
+      <span style="font-family:var(--font-data);font-size:11px;color:var(--rift)">Lv.${core.rift_tide?.threat_level??1}</span>
+    </div>
+  </div>
+</div>`;
+}
+
+// ─── Ship Deck ─────────────────────────────────────────────────────────────────
+function renderDeck(ship, modules, character) {
+  const grid = ship.mothership || ship;
+  const mods = (grid.modules || ship.modules) ?? [];
+  const locked = (grid.locked || ship.locked) ?? [];
+  const traits = (grid.tile_traits || ship.tile_traits) ?? {};
+  const [rows, cols] = grid.grid_size || [6,6];
+
+  // Build cell lookup
+  const modMap = {};
+  mods.forEach(m => {
+    const key = (m.pos??[0,0]).join(',');
+    modMap[key] = m;
+  });
+  const lockedSet = new Set(locked.map(l => l.pos.join(',')));
+
+  // Build trait lookup: pos → trait name
+  const traitMap = {};
+  Object.entries(traits).forEach(([trait, positions]) => {
+    positions.forEach(p => { traitMap[p.join(',')] = trait; });
+  });
+
+  const modDefs = modules.modules ?? {};
+
+  const typeIcon = { energy:'⚡', habitat:'🛖', research:'🔬', defense:'🛡', storage:'📦', utility:'🔧', command:'⭐', default:'·' };
+  const typeMod  = { energy:'mod-energy', habitat:'mod-habitat', research:'mod-research', defense:'mod-defense', storage:'mod-storage', utility:'mod-utility', command:'mod-command' };
+
+  let selectedKey = null;
+
+  function buildGrid() {
+    let html = `<div class="deck-grid">`;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const key = `${r},${c}`;
+        const isLocked = lockedSet.has(key);
+        const mod = modMap[key];
+        const trait = traitMap[key];
+
+        let classes = 'deck-cell';
+        if (isLocked) classes += ' locked';
+        if (mod && !isLocked) classes += ' ' + (typeMod[mod.type] ?? '');
+        if (trait) classes += ' trait-' + trait;
+        if (key === selectedKey) classes += ' selected';
+
+        let icon = isLocked ? '🔒' : (mod ? (typeIcon[mod.type] ?? '·') : '');
+        let label = isLocked ? 'LOCKED' : (mod ? mod.name : '');
+        if (label.length > 6) label = label.slice(0,5) + '…';
+
+        html += `<div class="${classes}" data-key="${key}" title="${isLocked ? (locked.find(l=>l.pos.join(',')===key)?.reason||'破損') : (mod?.name??'空置')}">
+          ${icon ? `<div class="cell-type-icon">${icon}</div>` : ''}
+          <div class="cell-label">${label}</div>
+        </div>`;
+      }
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  function buildDetail(key) {
+    const isLocked = lockedSet.has(key);
+    if (isLocked) {
+      const lockInfo = locked.find(l => l.pos.join(',') === key);
+      return `<div class="deck-detail-title" style="color:var(--dead)">🔒 封閉艙段</div>
+        <div class="kv-row"><span class="kv-key">位置</span><span class="kv-val">${key}</span></div>
+        <div class="kv-row"><span class="kv-key">原因</span><span class="kv-val">${lockInfo?.reason ?? '破損'}</span></div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:10px">需修復後方可使用此格。</div>`;
+    }
+    const mod = modMap[key];
+    const trait = traitMap[key];
+    if (!mod) {
+      return `<div class="deck-detail-title" style="color:var(--text-dim)">空置格</div>
+        <div class="kv-row"><span class="kv-key">位置</span><span class="kv-val">${key}</span></div>
+        ${trait ? `<div class="kv-row"><span class="kv-key">地形</span><span class="kv-val">${trait}</span></div>` : ''}
+        <div style="font-size:11px;color:var(--text-dim);margin-top:10px">可安裝模塊。</div>`;
+    }
+    const def = modDefs[mod.id] ?? {};
+    const prod = def.produces ?? mod.produces;
+    const prov = def.provides ?? {};
+    return `<div class="deck-detail-title">${mod.name}</div>
+      <div class="kv-row"><span class="kv-key">位置</span><span class="kv-val">${key}</span></div>
+      <div class="kv-row"><span class="kv-key">類型</span><span class="kv-val">${mod.type ?? '—'}</span></div>
+      <div class="kv-row"><span class="kv-key">狀態</span><span class="kv-val"><span class="badge badge-${mod.active?'active':'locked'}">${mod.active?'運作中':'停機'}</span></span></div>
+      ${trait ? `<div class="kv-row"><span class="kv-key">地形</span><span class="kv-val">${trait}</span></div>` : ''}
+      ${prod ? `<div class="kv-row"><span class="kv-key">產出</span><span class="kv-val">${Object.entries(prod).map(([k,v])=>`${k.toUpperCase()} +${v}`).join('  ')}</span></div>` : ''}
+      ${prov.pop_cap ? `<div class="kv-row"><span class="kv-key">人口上限</span><span class="kv-val">+${prov.pop_cap}</span></div>` : ''}
+      ${mod.occupants?.length ? `<div class="kv-row"><span class="kv-key">容納</span><span class="kv-val">${mod.occupants.join(', ')}</span></div>` : ''}
+      ${mod.note || def.note ? `<div style="font-size:11px;color:var(--text-dim);margin-top:8px">${mod.note||def.note}</div>` : ''}`;
+  }
+
+  const legend = [
+    { color:'var(--rift)', label:'能源' }, { color:'var(--life)', label:'居住' },
+    { color:'var(--signal)', label:'研究' }, { color:'var(--dead)', label:'防禦' },
+    { color:'#9A7ADC', label:'儲存' }, { color:'#7ADC6A', label:'公用' },
+    { color:'var(--warn)', label:'指揮' }, { color:'var(--locked)', label:'鎖定' },
+  ];
+
+  document.getElementById('deck-content').innerHTML = `
+<div class="deck-layout">
+  <div class="deck-grid-wrap">
+    ${buildGrid()}
+    <div class="deck-legend" style="margin-top:10px">
+      ${legend.map(l=>`<div class="legend-item"><div class="legend-swatch" style="background:${l.color}"></div>${l.label}</div>`).join('')}
+    </div>
+    <div class="deck-legend" style="margin-top:6px">
+      <div class="legend-item"><div style="width:10px;height:10px;border-left:2px solid var(--warn);border-top:1px solid var(--border)"></div>船脊</div>
+      <div class="legend-item"><div style="width:10px;height:10px;border-right:2px solid var(--dead);border-top:1px solid var(--border)"></div>船殼緣</div>
+      <div class="legend-item"><div style="width:10px;height:10px;border-top:2px solid var(--signal)"></div>冷卻區</div>
+      <div class="legend-item"><div style="width:10px;height:10px;border:1px dashed var(--border)"></div>破損區</div>
+    </div>
+  </div>
+  <div class="deck-detail" id="deck-detail-panel">
+    <div style="color:var(--text-dim);font-size:12px">點選格子查看詳情</div>
+  </div>
+</div>`;
+
+  document.getElementById('deck-content').querySelectorAll('.deck-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const key = cell.dataset.key;
+      selectedKey = key;
+      document.querySelectorAll('.deck-cell').forEach(c => c.classList.remove('selected'));
+      cell.classList.add('selected');
+      document.getElementById('deck-detail-panel').innerHTML = buildDetail(key);
+    });
+  });
+}
+
+// ─── Skills ─────────────────────────────────────────────────────────────────
+function renderSkills(skills, character) {
+  const unlocked = new Set(character.unlocked_nodes ?? []);
+  const variantStatus = character.variant_analysis ?? {};
+  const deepChosen = character.deep_mutation_chosen;
+
+  // Star web SVG
+  const cx = 300, cy = 260, R1 = 128, R2 = 205;
+  const pillars = [
+    { id:'sense',     name:'識域', angle:-90 },
+    { id:'kinesis',   name:'操軛', angle:-90+72 },
+    { id:'resonance', name:'同調', angle:-90+144 },
+    { id:'psyche',    name:'魂語', angle:-90+216 },
+    { id:'soma',      name:'蛻體', angle:-90+288 },
+  ];
+  const variants = [
+    { id:'foresight',    name:'觀界', between:['sense','kinesis'] },
+    { id:'pyroflux',     name:'燼能', between:['kinesis','resonance'] },
+    { id:'netmind',      name:'網識', between:['resonance','psyche'] },
+    { id:'symbiosis',    name:'共生', between:['psyche','soma'] },
+    { id:'anomaly_sense',name:'異感', between:['soma','sense'] },
+  ];
+
+  const toRad = d => d * Math.PI / 180;
+  const pillarPos = {};
+  pillars.forEach(p => {
+    pillarPos[p.id] = {
+      x: cx + R1 * Math.cos(toRad(p.angle)),
+      y: cy + R1 * Math.sin(toRad(p.angle))
+    };
+  });
+
+  const variantPos = {};
+  variants.forEach(v => {
+    const a0 = pillars.find(p => p.id === v.between[0]).angle;
+    const a1 = pillars.find(p => p.id === v.between[1]).angle;
+    let mid = (a0 + a1) / 2;
+    // Handle wrap for soma↔sense
+    if (Math.abs(a1 - a0) > 180) mid += 180;
+    variantPos[v.id] = {
+      x: cx + R2 * Math.cos(toRad(mid)),
+      y: cy + R2 * Math.sin(toRad(mid))
+    };
+  });
+
+  const nodeColor = id => unlocked.has(id) ? '#6AADDC' : '#243040';
+  const varColor  = id => variantStatus[id] === 'unlocked' ? '#3ADCA0' : (variantStatus[id] === 'analysing' ? '#DCC04A' : '#1A2A3A');
+  const textCol   = id => unlocked.has(id) ? '#B8C8DC' : '#4A6080';
+  const varText   = id => variantStatus[id] === 'unlocked' ? '#3ADCA0' : '#4A6080';
+
+  let svgLines = '';
+  // origin → pillars
+  pillars.forEach(p => {
+    const pos = pillarPos[p.id];
+    const lk = unlocked.has(p.id);
+    svgLines += `<line x1="${cx}" y1="${cy}" x2="${pos.x}" y2="${pos.y}" stroke="${lk?'#2A4D6A':'#1A2530'}" stroke-width="${lk?1.5:1}" stroke-dasharray="${lk?'':'4 3'}"/>`;
+  });
+  // pillars → variants
+  variants.forEach(v => {
+    const vp = variantPos[v.id];
+    v.between.forEach(pid => {
+      const pp = pillarPos[pid];
+      const isUnlocked = variantStatus[v.id] === 'unlocked';
+      svgLines += `<line x1="${pp.x}" y1="${pp.y}" x2="${vp.x}" y2="${vp.y}" stroke="${isUnlocked?'#1A4030':'#131E28'}" stroke-width="1" stroke-dasharray="${isUnlocked?'':'5 4'}"/>`;
+    });
+  });
+
+  let svgNodes = '';
+  // origin
+  svgNodes += `<g class="skill-node ${unlocked.has('origin')?'unlocked':'locked'}" data-id="origin">
+    <circle cx="${cx}" cy="${cy}" r="22" fill="${unlocked.has('origin')?'#162D48':'#0E1C2C'}" stroke="${unlocked.has('origin')?'#6AADDC':'#253548'}" stroke-width="1.5"/>
+    <text x="${cx}" y="${cy+1}" text-anchor="middle" dominant-baseline="middle" font-family="'Space Grotesk',sans-serif" font-size="9" font-weight="600" fill="${textCol('origin')}">覺醒</text>
+    <text x="${cx}" y="${cy+11}" text-anchor="middle" dominant-baseline="middle" font-family="'Space Grotesk',sans-serif" font-size="8" fill="${textCol('origin')}">原點</text>
+  </g>`;
+  // pillars
+  pillars.forEach(p => {
+    const pos = pillarPos[p.id];
+    const def = skills.pillars?.[p.id];
+    const tierUnlocked = def?.nodes?.filter(n => unlocked.has(n.id)).length ?? 0;
+    const tierTotal = (def?.nodes?.length ?? 0) + 5; // estimated total tiers
+    svgNodes += `<g class="skill-node ${unlocked.has(p.id)?'unlocked':'locked'}" data-id="${p.id}">
+      <circle cx="${pos.x}" cy="${pos.y}" r="18" fill="${nodeColor(p.id)+'28'}" stroke="${nodeColor(p.id)}" stroke-width="1.5"/>
+      <text x="${pos.x}" y="${pos.y+1}" text-anchor="middle" dominant-baseline="middle" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600" fill="${textCol(p.id)}">${p.name}</text>
+      ${tierUnlocked>0?`<text x="${pos.x}" y="${pos.y+12}" text-anchor="middle" dominant-baseline="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#3A6080">${tierUnlocked}階</text>`:''}
+    </g>`;
+  });
+  // variants
+  variants.forEach(v => {
+    const vp = variantPos[v.id];
+    const st = variantStatus[v.id] ?? 'locked';
+    svgNodes += `<g class="skill-node" data-id="${v.id}" data-type="variant">
+      <circle cx="${vp.x}" cy="${vp.y}" r="14" fill="${varColor(v.id)+'20'}" stroke="${varColor(v.id)}" stroke-width="1.5" stroke-dasharray="${st==='locked'?'3 2':''}"/>
+      <text x="${vp.x}" y="${vp.y}" text-anchor="middle" dominant-baseline="middle" font-family="'Space Grotesk',sans-serif" font-size="10" font-weight="600" fill="${varText(v.id)}">${v.name}</text>
+    </g>`;
+  });
+
+  let detailHTML = '<div style="color:var(--text-dim);font-size:12px">點選節點查看詳情</div>';
+
+  const deeps = skills.deep_mutations?.options ?? [];
+
+  document.getElementById('skills-content').innerHTML = `
+<div style="margin-bottom:4px;font-size:11px;color:var(--text-dim)">
+  已解鎖節點 <span style="color:var(--signal)">${unlocked.size}</span>・可用技能點 <span style="color:var(--warn)">${character.available_points ?? 0}</span>
+</div>
+<div class="skill-layout">
+  <div class="skill-svg-wrap">
+    <svg viewBox="0 0 600 480" width="600" height="480" style="max-width:100%">
+      ${svgLines}${svgNodes}
+    </svg>
+  </div>
+  <div class="skill-detail" id="skill-detail-panel" style="min-height:200px">
+    ${detailHTML}
+  </div>
+</div>
+<div class="deep-mutations">
+  <div class="deep-title">深層變異（終局・唯一三選一）</div>
+  <div class="exclusive-note">▲ 三選一・選後不可回頭・對應對星系級力量的終極立場</div>
+  <div class="deep-cards">
+    ${deeps.map(d => `
+      <div class="deep-card ${deepChosen===d.id?'chosen':''} ${!deepChosen&&character.unlocked_nodes?.includes('origin')?'':'locked-deep'}" data-id="${d.id}">
+        <div class="deep-card-name" style="color:${d.id==='riftstep'?'var(--signal)':d.id==='silence'?'var(--dead)':'var(--life)'}">${d.name}</div>
+        <div class="deep-card-stance">${d.stance}</div>
+        <div class="deep-card-effect">${d.effect}</div>
+        ${deepChosen===d.id?'<div style="margin-top:8px"><span class="badge badge-active">已選擇</span></div>':''}
+      </div>`).join('')}
+  </div>
+</div>`;
+
+  // Node click handler
+  document.getElementById('skills-content').querySelectorAll('.skill-node').forEach(node => {
+    node.addEventListener('click', () => {
+      const id = node.dataset.id;
+      const isVariant = node.dataset.type === 'variant';
+      let detail = '';
+      if (isVariant) {
+        const vDef = skills.variants?.[id];
+        const st = variantStatus[id] ?? 'locked';
+        detail = `<div class="deck-detail-title" style="color:var(--life)">${vDef?.name ?? id}（變異）</div>
+          <div class="kv-row"><span class="kv-key">碰撞</span><span class="kv-val">${(vDef?.collision??[]).join(' × ')}</span></div>
+          <div class="kv-row"><span class="kv-key">狀態</span><span class="kv-val"><span class="badge badge-${st==='unlocked'?'active':st==='analysing'?'warn':'locked'}">${st==='unlocked'?'已解鎖':st==='analysing'?'解析中':'鎖定'}</span></span></div>
+          <div class="sep"></div>
+          <div style="font-size:12px;margin-bottom:6px">${vDef?.effect ?? ''}</div>
+          <div class="card-title" style="margin-top:8px">解鎖條件</div>
+          <div class="kv-row"><span class="kv-key">技能</span><span class="kv-val">${(vDef?.unlock?.skills??[]).join(', ')}</span></div>
+          <div class="kv-row"><span class="kv-key">科技</span><span class="kv-val">${(vDef?.unlock?.tech??[]).join(', ')}</span></div>
+          <div class="kv-row"><span class="kv-key">敘事</span><span class="kv-val">${vDef?.unlock?.narrative ?? '—'}</span></div>`;
+      } else {
+        const pDef = skills.pillars?.[id] ?? skills.core;
+        const isUnlocked = unlocked.has(id);
+        const nodes = pDef?.nodes ?? [];
+        detail = `<div class="deck-detail-title" style="color:var(--signal)">${pDef?.name ?? id}</div>
+          <div class="kv-row"><span class="kv-key">支柱</span><span class="kv-val">${pDef?.pillar ?? '核心'}</span></div>
+          <div class="kv-row"><span class="kv-key">狀態</span><span class="kv-val"><span class="badge badge-${isUnlocked?'active':'locked'}">${isUnlocked?'已解鎖':'未解鎖'}</span></span></div>
+          ${pDef?.tech_cross?`<div class="kv-row"><span class="kv-key">科技交叉</span><span class="kv-val">${pDef.tech_cross}</span></div>`:''}
+          <div class="sep"></div>
+          <div class="card-title">已知節點</div>
+          ${nodes.map(n=>`
+            <div style="padding:6px 0;border-bottom:1px solid var(--hull-3)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+                <span style="font-size:12px;font-weight:500">${n.name}</span>
+                <span class="badge badge-${unlocked.has(n.id)?'active':'locked'}">${unlocked.has(n.id)?'已解鎖':'未解鎖'}</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-dim)">${n.effect}</div>
+            </div>`).join('')}
+          ${pDef?.expand?`<div style="font-size:10px;color:var(--text-dim);margin-top:8px">▸ ${pDef.expand}</div>`:''}`;
+      }
+      document.getElementById('skill-detail-panel').innerHTML = detail;
+    });
+  });
+}
+
+// ─── Tech ─────────────────────────────────────────────────────────────────────
+function renderTech(tech, character) {
+  const unlocked = new Set(character.unlocked_nodes ?? []);
+  const domains = ['propulsion_power','structure_material','life_production','sensor_comms'];
+  const domainNames = {
+    propulsion_power:'推進・能源', structure_material:'結構・材料',
+    life_production:'生命・生產', sensor_comms:'感測・通訊'
+  };
+
+  function isAvailable(t) {
+    return (t.prereq ?? []).every(p => unlocked.has(p));
+  }
+
+  const domainHTML = domains.map(did => {
+    const domain = tech[did];
+    if (!domain) return '';
+    const techs = domain.techs ?? [];
+    return `<div class="tech-domain">
+      <div class="domain-title">${domainNames[did] ?? did}</div>
+      ${techs.map(t => {
+        const isUnlocked = unlocked.has(t.id);
+        const avail = !isUnlocked && isAvailable(t);
+        const st = isUnlocked?'unlocked':avail?'available':'locked';
+        const stLabel = isUnlocked?'已解鎖':avail?'可解鎖':'鎖定';
+        const stBadge = isUnlocked?'active':avail?'warn':'locked';
+        return `<div class="tech-node ${st}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span class="tech-node-name">${t.name}</span>
+            <span class="badge badge-${stBadge}">${stLabel}</span>
+          </div>
+          <div class="tech-node-meta">花費 ${t.cost} 科技點${t.prereq?.length?'  ·  需：'+t.prereq.join(', '):''}</div>
+          ${t.narrative_req?`<div class="tech-node-meta" style="color:var(--rift);margin-top:2px">✦ ${t.narrative_req}</div>`:''}
+          ${t.unlocks?.length?`<div class="tech-node-meta" style="color:var(--text-dim);margin-top:3px">→ ${(Array.isArray(t.unlocks)?t.unlocks:[t.unlocks]).join(' · ')}</div>`:''}
+          ${t.note?`<div class="tech-node-meta" style="color:var(--signal);margin-top:2px">◆ ${t.note}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  document.getElementById('tech-content').innerHTML = `
+<div style="margin-bottom:12px;font-size:11px;color:var(--text-dim)">
+  可用科技點 <span style="color:var(--warn)">${character.available_points ?? 0}</span>
+  ・點數來源：研究模塊・探索情報・拆解殘骸
+</div>
+<div class="tech-domains">${domainHTML}</div>`;
+}
+
+// ─── Crew ─────────────────────────────────────────────────────────────────────
+function renderCrew(crew) {
+  const members = crew.crew ?? [];
+  const statusBadge = st => {
+    if (st === 'active') return '<span class="badge badge-active">在職</span>';
+    if (st?.includes('cryo')) return '<span class="badge badge-cryo">休眠中</span>';
+    return `<span class="badge badge-locked">${st}</span>`;
+  };
+  document.getElementById('crew-content').innerHTML = `
+<div class="crew-cards">
+  ${members.map(m => `
+    <div class="crew-card">
+      <div class="crew-card-header">
+        <span class="crew-name">${m.id==='comms_officer'?'通訊官':m.id==='scientist'?'科學家':m.name??m.id}</span>
+        ${statusBadge(m.status)}
+      </div>
+      <div class="crew-role">${m.role ?? '—'}</div>
+      ${m.assigned_module?`<div class="kv-row"><span class="kv-key">指派</span><span class="kv-val">${m.assigned_module}</span></div>`:''}
+      ${m.narrative_hook?`<div class="crew-hook">✦ ${m.narrative_hook}</div>`:''}
+    </div>`).join('')}
+</div>`;
+}
+
+// ─── Log ─────────────────────────────────────────────────────────────────────
+function renderLog(summary, scene) {
+  // Strip markdown heading syntax for display
+  const clean = t => t.replace(/^#{1,3}\s/gm, '').trim();
+  document.getElementById('log-content').innerHTML = `
+<div class="log-section">
+  <div class="log-section-title">長期摘要</div>
+  <div class="log-text">${clean(summary)}</div>
+</div>
+<div class="log-section">
+  <div class="log-section-title">當前場景</div>
+  <div class="log-text">${clean(scene)}</div>
+</div>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星際漂流 — 舷窗觀測</title>
+<style>
+  :root{
+    --frame-d: min(92vmin, 940px);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#000;}
+  body{font-family:"Noto Sans TC",system-ui,sans-serif;}
+
+  #scene{position:fixed;inset:0;display:block;}
+
+  /* ================================================================
+     座艙：深色工業風（星際效應質感）
+     所有艙內元素放在 #cabin 內，由同一個圓形遮罩鏤空出舷窗
+     ================================================================ */
+  #cabin{
+    position:fixed;inset:0;pointer-events:none;
+    -webkit-mask: radial-gradient(circle at 50% 50%, transparent calc(var(--frame-d)/2 - 2px), #000 calc(var(--frame-d)/2 - 1px));
+            mask: radial-gradient(circle at 50% 50%, transparent calc(var(--frame-d)/2 - 2px), #000 calc(var(--frame-d)/2 - 1px));
+  }
+  #cabin .el{position:absolute;}
+
+  /* 艙壁基底：近黑的鎗鐵色，窗緣被窗外光微微照亮 */
+  .wall{
+    inset:0;
+    background:
+      /* 細密面板接縫 */
+      repeating-linear-gradient(90deg, transparent 0 138px, rgba(140,160,190,.045) 138px 140px),
+      repeating-linear-gradient(0deg, transparent 0 96px, rgba(140,160,190,.04) 96px 98px),
+      /* 斜向結構縫 */
+      repeating-linear-gradient(38deg, transparent 0 260px, rgba(120,140,170,.03) 260px 262px),
+      /* 窗光照亮艙壁內緣 */
+      radial-gradient(circle at 50% 50%, rgba(150,165,190,.13) calc(var(--frame-d)*0.5), rgba(90,100,120,.05) calc(var(--frame-d)*0.62), transparent calc(var(--frame-d)*0.85)),
+      radial-gradient(ellipse at 28% 18%, #11141a 0%, #0a0c10 40%, #040508 100%);
+    background-color:#06070b;
+  }
+
+  /* 行星粉光暈染艙壁（下右）與冷星光（上左） */
+  .spill-pink{
+    inset:0;
+    background:radial-gradient(circle at 64% 74%, rgba(255,140,205,.085), rgba(255,140,205,.03) 24vmin, transparent 44vmin);
+  }
+  .spill-cool{
+    inset:0;
+    background:radial-gradient(circle at 34% 24%, rgba(150,190,255,.05), transparent 36vmin);
+  }
+
+  /* 四角斜撐樑 */
+  .strut{
+    width:46vmin;height:6.5vmin;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 5.2vmin, rgba(0,0,0,.45) 5.2vmin 5.6vmin),
+      linear-gradient(180deg, #1d2127 0%, #2a2f37 18%, #14171c 55%, #1f242b 88%, #0c0e12 100%);
+    box-shadow: 0 .6vmin 2vmin rgba(0,0,0,.7), inset 0 1px 0 rgba(180,200,230,.10);
+    border-radius:.4vmin;
+  }
+  .strut.tl{left:-9vmin;top:9vmin;transform:rotate(42deg);}
+  .strut.tr{right:-9vmin;top:9vmin;transform:rotate(-42deg);}
+  .strut.bl{left:-9vmin;bottom:9vmin;transform:rotate(-42deg);}
+  .strut.br{right:-9vmin;bottom:9vmin;transform:rotate(42deg);}
+
+  /* 左側管線組 */
+  .pipe{
+    width:1.7vmin;border-radius:1vmin;
+    background:linear-gradient(90deg, #0b0d11 0%, #2b313a 38%, #3d444f 50%, #262b33 64%, #0b0d11 100%);
+    box-shadow: .3vmin .4vmin 1.4vmin rgba(0,0,0,.65);
+  }
+  .pipe.p1{left:7.5vmin;top:6%;height:88%;}
+  .pipe.p2{left:10.4vmin;top:12%;height:76%;width:1.1vmin;}
+  .clamp{
+    left:6.6vmin;width:5.8vmin;height:1.5vmin;border-radius:.3vmin;
+    background:linear-gradient(180deg,#33383f,#181b20 60%,#23272e);
+    box-shadow:0 .3vmin .8vmin rgba(0,0,0,.7), inset 0 1px 0 rgba(190,210,240,.12);
+  }
+  .clamp.c1{top:24%;} .clamp.c2{top:52%;} .clamp.c3{top:78%;}
+
+  /* 右側導管 */
+  .conduit{
+    right:8vmin;top:10%;height:80%;width:3.2vmin;border-radius:.5vmin;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 6vmin, rgba(0,0,0,.5) 6vmin 6.5vmin),
+      linear-gradient(90deg,#0d0f13,#262b33 45%,#31363f 55%,#15181d);
+    box-shadow:-.3vmin .4vmin 1.6vmin rgba(0,0,0,.6);
+  }
+
+  /* 頂部纜線槽 */
+  .tray{
+    left:14%;top:5.5vmin;width:72%;height:2.6vmin;border-radius:.3vmin;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 3.4vmin, rgba(0,0,0,.55) 3.4vmin 3.8vmin),
+      linear-gradient(180deg,#23272e,#101319 70%,#1a1e24);
+    box-shadow:0 .5vmin 1.6vmin rgba(0,0,0,.65), inset 0 1px 0 rgba(170,190,220,.08);
+  }
+
+  /* 通風格柵 */
+  .vent{
+    width:9vmin;height:5vmin;border-radius:.4vmin;
+    background:repeating-linear-gradient(0deg, #05060a 0 .55vmin, #1c2128 .55vmin .95vmin);
+    box-shadow:inset 0 .3vmin 1vmin rgba(0,0,0,.85), 0 .2vmin .8vmin rgba(0,0,0,.5), inset 0 0 0 1px rgba(120,140,170,.10);
+  }
+  .vent.v1{right:16vmin;bottom:9vmin;}
+  .vent.v2{left:16vmin;top:11vmin;width:7vmin;height:4vmin;}
+
+  /* 狀態指示燈 */
+  .led{
+    width:.7vmin;height:.7vmin;border-radius:50%;
+  }
+  .led.green{left:9.1vmin;top:20%;background:#3dffa0;box-shadow:0 0 1.2vmin rgba(60,255,160,.55);opacity:.55;}
+  .led.amber{left:9.1vmin;top:21.8%;background:#ffb24d;box-shadow:0 0 1.2vmin rgba(255,178,77,.6);animation:blink 5.2s ease-in-out infinite;}
+  .led.red{right:9.2vmin;top:74%;background:#ff5050;box-shadow:0 0 1vmin rgba(255,80,80,.5);opacity:.4;}
+  @keyframes blink{0%,100%{opacity:.18;}45%,60%{opacity:.85;}}
+
+  /* 模板噴字 */
+  .stencil{
+    color:rgba(150,165,190,.16);
+    font-family:"Courier New",monospace;font-weight:700;
+    letter-spacing:.45em;white-space:nowrap;user-select:none;
+  }
+  .stencil.s1{left:4.2vmin;top:50%;transform:rotate(-90deg) translateX(50%);transform-origin:left center;font-size:2vmin;}
+  .stencil.s2{right:13vmin;bottom:5.2vmin;font-size:1.3vmin;color:rgba(150,165,190,.12);}
+  .hazard{
+    left:4.6vmin;bottom:14%;width:1.4vmin;height:13vmin;
+    background:repeating-linear-gradient(45deg,rgba(190,60,50,.30) 0 1.2vmin,rgba(20,20,22,.0) 1.2vmin 2.4vmin);
+    border-radius:.2vmin;opacity:.5;
+  }
+
+  /* 整體環境遮蔽（角落沉入黑暗） */
+  .ao{
+    inset:0;
+    background:radial-gradient(ellipse at 50% 50%, transparent 46%, rgba(0,0,0,.55) 86%, rgba(0,0,0,.8) 100%);
+  }
+
+  /* ================================================================
+     舷窗框：厚重分段式結構環（深色鎗鐵）
+     ================================================================ */
+  #frame{
+    position:fixed;left:50%;top:50%;
+    width:var(--frame-d);height:var(--frame-d);
+    transform:translate(-50%,-50%);
+    border-radius:50%;pointer-events:none;
+  }
+  #frame > div{position:absolute;border-radius:50%;}
+
+  /* 最外圈：寬厚結構環，分段鑄件 */
+  .ring-outer{
+    inset:calc(var(--frame-d)*-0.085);
+    background:
+      repeating-conic-gradient(from 8deg, rgba(0,0,0,0) 0deg 27deg, rgba(0,0,0,.55) 27deg 30deg),
+      conic-gradient(from 220deg,
+        #1a1e24, #2c323b 10%, #14171d 22%, #262c34 36%, #181c22 50%,
+        #2a3039 62%, #121519 76%, #232830 88%, #1a1e24 100%);
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,.9),
+      inset 0 0 4vmin rgba(0,0,0,.85),
+      0 2.5vmin 9vmin rgba(0,0,0,.8);
+    -webkit-mask:radial-gradient(circle, transparent calc(var(--frame-d)*0.5 - 1px), #000 calc(var(--frame-d)*0.5));
+            mask:radial-gradient(circle, transparent calc(var(--frame-d)*0.5 - 1px), #000 calc(var(--frame-d)*0.5));
+  }
+  /* 中圈：內襯壓環（鉚釘座） */
+  .ring-step{
+    inset:calc(var(--frame-d)*-0.018);
+    background:
+      conic-gradient(from 140deg,
+        #23282f, #11141a 18%, #1f242b 40%, #0e1116 58%, #1c2127 78%, #23282f 100%);
+    box-shadow:
+      inset 0 0 2vmin rgba(0,0,0,.8),
+      inset 0 1px 1px rgba(170,190,220,.10);
+    -webkit-mask:radial-gradient(circle, transparent calc(var(--frame-d)*0.483 - 1px), #000 calc(var(--frame-d)*0.483));
+            mask:radial-gradient(circle, transparent calc(var(--frame-d)*0.483 - 1px), #000 calc(var(--frame-d)*0.483));
+  }
+  /* 內緣受光：行星粉光打亮下右側內框，星光微照上左 */
+  .ring-rim{
+    inset:calc(var(--frame-d)*0.002);
+    background:
+      conic-gradient(from 0deg,
+        transparent 0deg 80deg,
+        rgba(255,165,215,.10) 110deg,
+        rgba(255,180,222,.42) 140deg,
+        rgba(255,165,215,.10) 175deg,
+        transparent 205deg,
+        transparent 268deg,
+        rgba(170,200,255,.14) 300deg,
+        transparent 335deg 360deg);
+    -webkit-mask:radial-gradient(circle, transparent calc(var(--frame-d)*0.478), #000 calc(var(--frame-d)*0.480));
+            mask:radial-gradient(circle, transparent calc(var(--frame-d)*0.478), #000 calc(var(--frame-d)*0.480));
+  }
+  /* 鉚釘（JS 生成定位） */
+  .bolt{
+    position:absolute;left:50%;top:50%;border-radius:50%;
+    width:calc(var(--frame-d)*0.018);height:calc(var(--frame-d)*0.018);
+    margin:calc(var(--frame-d)*-0.009);
+    background:radial-gradient(circle at 36% 32%, #4a525e 0%, #23282f 45%, #0b0d11 100%);
+    box-shadow:0 .2vmin .5vmin rgba(0,0,0,.8);
+  }
+  .bolt::after{
+    content:"";position:absolute;inset:28%;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, #11141a, #040508);
+  }
+
+  /* ================================================================
+     玻璃層
+     ================================================================ */
+  #glass{
+    position:fixed;left:50%;top:50%;
+    width:var(--frame-d);height:var(--frame-d);
+    transform:translate(-50%,-50%);
+    border-radius:50%;overflow:hidden;pointer-events:none;
+  }
+  #glass .inner{position:absolute;inset:0;will-change:transform;}
+  #glass .fresnel{
+    position:absolute;inset:0;border-radius:50%;
+    box-shadow:
+      inset 0 0 calc(var(--frame-d)*0.045) rgba(140,170,220,.07),
+      inset 0 0 calc(var(--frame-d)*0.010) rgba(210,230,255,.13);
+  }
+  #glass .streak-a{
+    position:absolute;left:-25%;top:-45%;width:72%;height:190%;
+    background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.05) 48%, rgba(255,255,255,.085) 50%, rgba(255,255,255,.035) 53%, transparent 60%);
+    transform:rotate(8deg);
+  }
+  #glass .streak-b{
+    position:absolute;left:22%;top:-40%;width:55%;height:180%;
+    background:linear-gradient(115deg, transparent 44%, rgba(200,225,255,.035) 50%, rgba(200,225,255,.05) 51%, transparent 57%);
+    transform:rotate(8deg);
+  }
+  #glass .smudge{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse 16% 8% at 66% 70%, rgba(200,210,230,.025), transparent 70%),
+      radial-gradient(ellipse 10% 13% at 30% 56%, rgba(200,210,230,.02), transparent 70%),
+      radial-gradient(ellipse 22% 5% at 50% 22%, rgba(220,228,245,.022), transparent 70%);
+  }
+  #glass .scratch{
+    position:absolute;left:60%;top:10%;width:1px;height:26%;
+    background:linear-gradient(180deg,transparent,rgba(230,240,255,.12) 30%,rgba(230,240,255,.07) 60%,transparent);
+    transform:rotate(24deg);
+  }
+
+  #hint{
+    position:fixed;left:50%;bottom:6.5%;transform:translateX(-50%);
+    color:rgba(170,190,220,.45);font-size:13px;letter-spacing:.3em;
+    text-shadow:0 0 8px rgba(120,170,255,.25);
+    transition:opacity 2.5s ease;pointer-events:none;white-space:nowrap;
+  }
+  #hint.gone{opacity:0;}
+
+  @media (prefers-reduced-motion: reduce){
+    .led.amber{animation:none;opacity:.5;}
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div id="cabin">
+  <div class="el wall"></div>
+  <div class="el spill-pink"></div>
+  <div class="el spill-cool"></div>
+  <div class="el strut tl"></div>
+  <div class="el strut tr"></div>
+  <div class="el strut bl"></div>
+  <div class="el strut br"></div>
+  <div class="el pipe p1"></div>
+  <div class="el pipe p2"></div>
+  <div class="el clamp c1"></div>
+  <div class="el clamp c2"></div>
+  <div class="el clamp c3"></div>
+  <div class="el conduit"></div>
+  <div class="el tray"></div>
+  <div class="el vent v1"></div>
+  <div class="el vent v2"></div>
+  <div class="el led green"></div>
+  <div class="el led amber"></div>
+  <div class="el led red"></div>
+  <div class="el hazard"></div>
+  <div class="el stencil s1">SD&nbsp;·&nbsp;DECK&nbsp;03</div>
+  <div class="el stencil s2">PORT&nbsp;OBS&nbsp;·&nbsp;07</div>
+  <div class="el ao"></div>
+</div>
+
+<div id="frame">
+  <div class="ring-outer"></div>
+  <div class="ring-step"></div>
+  <div class="ring-rim"></div>
+</div>
+
+<div id="glass">
+  <div class="inner">
+    <div class="streak-a"></div>
+    <div class="streak-b"></div>
+    <div class="smudge"></div>
+    <div class="scratch"></div>
+  </div>
+  <div class="fresnel"></div>
+</div>
+
+<div id="hint">移 動 滑 鼠 環 視 窗 外</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ================= 基礎 ================= */
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(58, window.innerWidth/window.innerHeight, 0.1, 2500);
+camera.position.set(0,0,0);
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* 恆星：左上方（可轉視角找到） */
+const SUN_POS = new THREE.Vector3(-260, 240, -140);
+/* 行星：近距離掠過——置於視野右下，弧形地平線斜貫畫面 */
+const PLANET_POS = new THREE.Vector3(12, -12, -40);
+const LIGHT_DIR = SUN_POS.clone().sub(PLANET_POS).normalize();
+
+/* ================= 共用 GLSL ================= */
+const NOISE_GLSL = `
+  float hash3(vec3 p){
+    p = fract(p*0.3183099 + vec3(0.1,0.2,0.3));
+    p *= 17.0;
+    return fract(p.x*p.y*p.z*(p.x+p.y+p.z));
+  }
+  float noise3(vec3 x){
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    return mix(
+      mix(mix(hash3(i+vec3(0,0,0)), hash3(i+vec3(1,0,0)), f.x),
+          mix(hash3(i+vec3(0,1,0)), hash3(i+vec3(1,1,0)), f.x), f.y),
+      mix(mix(hash3(i+vec3(0,0,1)), hash3(i+vec3(1,0,1)), f.x),
+          mix(hash3(i+vec3(0,1,1)), hash3(i+vec3(1,1,1)), f.x), f.y), f.z);
+  }
+  float fbm(vec3 p){
+    float v = 0.0, a = 0.5;
+    for(int i=0;i<5;i++){
+      v += a*noise3(p);
+      p = p*2.07 + vec3(13.7, 7.3, 5.1);
+      a *= 0.5;
+    }
+    return v;
+  }
+  float fbm6(vec3 p){
+    float v = 0.0, a = 0.5;
+    for(int i=0;i<6;i++){
+      v += a*noise3(p);
+      p = p*2.13 + vec3(11.9, 4.7, 8.3);
+      a *= 0.5;
+    }
+    return v;
+  }
+  float ridgeFbm(vec3 p){
+    float v = 0.0, a = 0.55;
+    for(int i=0;i<6;i++){
+      float n = noise3(p);
+      n = 1.0 - abs(n*2.0 - 1.0);
+      v += a*n*n;
+      p = p*2.18 + vec3(6.1, 13.4, 2.9);
+      a *= 0.52;
+    }
+    return clamp(v, 0.0, 1.0);
+  }
+  vec3 rotY(vec3 v, float a){
+    float c = cos(a), s = sin(a);
+    return vec3(c*v.x + s*v.z, v.y, -s*v.x + c*v.z);
+  }
+  vec3 rotAxis(vec3 v, vec3 axis, float a){
+    float c = cos(a), s = sin(a);
+    return v*c + cross(axis,v)*s + axis*dot(axis,v)*(1.0-c);
+  }
+`;
+
+/* ================= 行星系統 ================= */
+const planetSystem = new THREE.Group();
+planetSystem.position.copy(PLANET_POS);
+/* 環面近乎切平視線（攝影機幾乎位於環面上），帶斜向掠勢 */
+planetSystem.rotation.set(THREE.MathUtils.degToRad(-9), 0, THREE.MathUtils.degToRad(14));
+scene.add(planetSystem);
+
+const R_PLANET = 17;
+
+/* ---------- 地表：深暗藍青基底（雲層為視覺主角） ---------- */
+const surfaceMat = new THREE.ShaderMaterial({
+  uniforms:{
+    uLightDir:{value:LIGHT_DIR},
+    uCamPos:{value:camera.position}
+  },
+  vertexShader:`
+    varying vec3 vObjPos;
+    varying vec3 vWorldNormal;
+    varying vec3 vWorldPos;
+    void main(){
+      vObjPos = position;
+      vWorldNormal = normalize(mat3(modelMatrix) * normal);
+      vec4 wp = modelMatrix * vec4(position,1.0);
+      vWorldPos = wp.xyz;
+      gl_Position = projectionMatrix * viewMatrix * wp;
+    }
+  `,
+  fragmentShader:`
+    precision highp float;
+    varying vec3 vObjPos;
+    varying vec3 vWorldNormal;
+    varying vec3 vWorldPos;
+    uniform vec3 uLightDir;
+    uniform vec3 uCamPos;
+    ${NOISE_GLSL}
+    void main(){
+      vec3 n = normalize(vObjPos);
+      vec3 geo = rotY(n, 0.42);
+      vec3 warp = vec3(
+        fbm6(geo*1.7 + vec3(2.0, 0.0, 7.0)),
+        fbm6(geo*1.7 + vec3(8.3, 3.0, 1.4)),
+        fbm6(geo*1.7 + vec3(1.0, 9.0, 5.7))
+      ) - 0.5;
+      vec3 p = normalize(geo + warp*0.34);
+
+      float shelf = fbm6(p*1.35 + vec3(3.4, 1.1, 6.8));
+      shelf += 0.32*fbm6(p*3.2 + vec3(0.4, 8.8, 2.3));
+      shelf -= abs(p.y)*0.10;
+
+      float land = smoothstep(0.55, 0.63, shelf);
+      float coast = 1.0 - smoothstep(0.00, 0.055, abs(shelf - 0.585));
+      float shallows = smoothstep(0.48, 0.61, shelf) * (1.0 - land);
+
+      float bath = fbm6(p*8.0 + vec3(7.0, 3.0, 1.0));
+      vec3 oceanAbyss = vec3(0.006, 0.022, 0.045);
+      vec3 oceanMid = vec3(0.012, 0.060, 0.105);
+      vec3 oceanShelf = vec3(0.038, 0.115, 0.145);
+      vec3 ocean = mix(oceanAbyss, oceanMid, bath);
+      ocean = mix(ocean, oceanShelf, shallows*0.72);
+
+      float relief = ridgeFbm(p*7.4 + vec3(5.2, 1.8, 9.1));
+      float highland = smoothstep(0.50, 0.85, relief);
+      vec3 basalt = vec3(0.045, 0.052, 0.060);
+      vec3 slate = vec3(0.105, 0.112, 0.125);
+      vec3 mineral = vec3(0.145, 0.120, 0.150);
+      vec3 landCol = mix(basalt, slate, fbm6(p*10.0 + vec3(4.0)));
+      landCol = mix(landCol, mineral, highland*0.42);
+      landCol += vec3(0.050, 0.020, 0.060) * coast;
+
+      float iceNoise = fbm6(p*5.8 + vec3(9.7, 1.0, 2.8));
+      float ice = smoothstep(0.78, 0.93, abs(p.y) + iceNoise*0.17);
+      vec3 iceCol = mix(vec3(0.48, 0.58, 0.68), vec3(0.88, 0.84, 0.92), iceNoise);
+
+      vec3 surf = mix(ocean, landCol, land);
+      surf = mix(surf, iceCol, ice*0.82);
+
+      /* 粉紫城市/裂谷光脈：白天只是淡淡礦物紋，夜側變成參考圖的發光網。 */
+      float veinLarge = ridgeFbm(p*9.0 + vec3(1.0, 7.0, 3.0));
+      float veinFine = ridgeFbm(p*23.0 + vec3(8.5, 1.2, 4.4));
+      float veinMask = smoothstep(0.50, 0.92, veinLarge) * smoothstep(0.42, 0.88, veinFine);
+      veinMask *= smoothstep(0.48, 0.68, shelf + coast*0.10);
+      veinMask *= 1.0 - ice*0.8;
+
+      vec3 worldN = normalize(vWorldNormal);
+      vec3 viewDir = normalize(uCamPos - vWorldPos);
+      float ndl = dot(worldN, uLightDir);
+      float day = smoothstep(-0.18, 0.28, ndl);
+      float night = 1.0 - smoothstep(-0.26, 0.04, ndl);
+      float terminator = smoothstep(0.34, 0.0, abs(ndl));
+
+      vec3 halfV = normalize(uLightDir + viewDir);
+      float spec = pow(max(dot(worldN, halfV), 0.0), 120.0);
+      spec *= (1.0 - land) * (1.0 - ice) * day * 0.52;
+
+      float landReliefShade = mix(0.86, 1.18, relief) * mix(1.0, 0.78, highland*night);
+      surf *= mix(1.0, landReliefShade, land);
+
+      float ringShadow = smoothstep(0.115, 0.015, abs(n.y + 0.06));
+      ringShadow *= smoothstep(-0.30, 0.45, n.x) * smoothstep(0.75, 0.15, n.z);
+      ringShadow *= day * 0.34;
+
+      vec3 col = surf * (0.035 + 0.965*day);
+      col *= 1.0 - ringShadow;
+      col += vec3(0.90, 0.38, 0.78) * veinMask * (0.08 + 1.85*night + 0.42*terminator);
+      col += vec3(0.95, 0.72, 0.92) * coast * day * 0.045;
+      col += vec3(1.0, 0.93, 0.86) * spec;
+      col += vec3(0.30, 0.12, 0.33) * terminator * 0.26;
+
+      float fres = pow(1.0 - max(dot(worldN, viewDir), 0.0), 2.0);
+      float sunRim = smoothstep(-0.10, 0.52, ndl);
+      col += vec3(0.78, 0.86, 1.0) * fres * 0.18;
+      col += vec3(1.0, 0.76, 0.94) * pow(fres, 1.35) * (0.18 + 0.72*sunRim);
+
+      col = max(col, vec3(0.0));
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `
+});
+const surfaceMesh = new THREE.Mesh(new THREE.SphereGeometry(R_PLANET, 128, 128), surfaceMat);
+surfaceMesh.renderOrder = 0;
+planetSystem.add(surfaceMesh);
+
+/* ---------- 雲層：準物理大氣 × 絲縷大理石紋 ----------
+   緯向噴流 + 五個漂移氣旋（準物理風場）驅動
+   脊狀噪聲（ridged noise）產生纖維狀亮粉雲絲，
+   大尺度域扭曲形成大理石般的纏繞紋路。 */
+const cloudMat = new THREE.ShaderMaterial({
+  transparent:true,
+  depthWrite:false,
+  uniforms:{
+    uTime:{value:0},
+    uLightDir:{value:LIGHT_DIR},
+    uCamPos:{value:camera.position}
+  },
+  vertexShader:`
+    varying vec3 vObjPos;
+    varying vec3 vWorldNormal;
+    varying vec3 vWorldPos;
+    void main(){
+      vObjPos = position;
+      vWorldNormal = normalize(mat3(modelMatrix) * normal);
+      vec4 wp = modelMatrix * vec4(position,1.0);
+      vWorldPos = wp.xyz;
+      gl_Position = projectionMatrix * viewMatrix * wp;
+    }
+  `,
+  fragmentShader:`
+    precision highp float;
+    varying vec3 vObjPos;
+    varying vec3 vWorldNormal;
+    varying vec3 vWorldPos;
+    uniform float uTime;
+    uniform vec3 uLightDir;
+    uniform vec3 uCamPos;
+    ${NOISE_GLSL}
+
+    float zonalWind(float lat){
+      float jet = cos(lat*3.2) * 0.7 + 0.5*cos(lat*6.5 + 0.8);
+      return jet * cos(lat) * 0.020;
+    }
+
+    vec3 cyclone(vec3 dir, float clat, float clon0, float str, float rad, float t){
+      float clon = clon0 + t * zonalWind(clat) * 0.85;
+      vec3 c = vec3(cos(clat)*cos(clon), sin(clat), cos(clat)*sin(clon));
+      float ang = acos(clamp(dot(dir, c), -1.0, 1.0));
+      float fall = exp(-(ang*ang)/(rad*rad));
+      float theta = str * fall * (1.0 + 0.3*sin(t*0.07 + clon0));
+      return rotAxis(dir, c, theta);
+    }
+
+    /* 脊狀值：把噪聲翻摺成細絲 */
+    float ridge(float v, float p){
+      return pow(1.0 - abs(2.0*v - 1.0), p);
+    }
+
+    void main(){
+      vec3 n = normalize(vObjPos);
+      float t = uTime;
+      float lat = asin(clamp(n.y, -1.0, 1.0));
+
+      /* 風場：緯向平流 + 氣旋 */
+      vec3 d = rotY(n, t * zonalWind(lat));
+      d = cyclone(d,  0.12,  1.3,  2.4, 0.30, t);
+      d = cyclone(d, -0.55,  3.6, -2.0, 0.26, t);
+      d = cyclone(d,  0.78, -2.1,  1.8, 0.22, t);
+      d = cyclone(d, -0.95,  0.4, -1.5, 0.20, t);
+      d = cyclone(d,  0.38, -4.4, -1.9, 0.24, t);
+
+      /* 強域扭曲：大理石纏繞 */
+      vec3 warp = vec3(
+        fbm(d*2.0 + vec3(0.0, t*0.011, 0.0)),
+        fbm(d*2.0 + vec3(5.2, 1.3, t*0.009)),
+        fbm(d*2.0 + vec3(t*0.007, 9.4, 2.7))
+      );
+      vec3 q = d*2.35 + (warp - 0.5)*2.55;
+
+      float synoptic = fbm6(q*0.95 + vec3(1.1, 4.2, 2.4));      /* 大尺度天氣系統 */
+      float deck = smoothstep(0.45, 0.72, synoptic);
+      float billow = ridgeFbm(q*2.6 + vec3(7.7, 1.0, 5.5));     /* 厚雲團 */
+      float feather = ridge(fbm6(q*6.4 + vec3(2.2, 9.4, 1.3)), 4.6); /* 高空纖維 */
+      float lace = ridge(fbm6(q*13.0 + vec3(6.6, 3.1, 8.4)), 6.0);   /* 銳利白絲 */
+
+      float stormCore = smoothstep(0.58, 0.94, billow) * deck;
+      float strands = clamp(feather*0.64 + lace*0.86, 0.0, 1.0);
+      float broken = smoothstep(0.20, 0.68, fbm6(q*4.1 + vec3(9.0, 0.7, 2.0)));
+      float cover = clamp(deck*0.18 + stormCore*0.54 + strands*broken*(0.28 + deck*0.72), 0.0, 1.0);
+      cover = smoothstep(0.12, 0.84, cover);
+
+      vec3 cloudWhite = vec3(1.0, 0.965, 0.985);
+      vec3 cloudWarm = vec3(0.98, 0.72, 0.90);
+      vec3 cloudViolet = vec3(0.34, 0.18, 0.42);
+      vec3 cloudCol = mix(cloudWarm, cloudWhite, clamp(lace*1.25 + stormCore*0.28, 0.0, 1.0));
+      cloudCol = mix(cloudViolet, cloudCol, clamp(0.30 + strands + deck*0.45, 0.0, 1.0));
+
+      float thickness = clamp(stormCore*0.78 + deck*0.28 + strands*0.35, 0.0, 1.0);
+      cloudCol *= 1.0 - thickness*0.18;
+
+      float ndl = dot(normalize(vWorldNormal), uLightDir);
+      float day = smoothstep(-0.14, 0.30, ndl);
+      float twilight = smoothstep(0.30, 0.0, abs(ndl));
+      vec3 viewDir = normalize(uCamPos - vWorldPos);
+      float limb = pow(1.0 - max(dot(normalize(vWorldNormal), viewDir), 0.0), 1.7);
+
+      vec3 col = cloudCol * (0.05 + 0.95*day);
+      col += vec3(1.0, 0.36, 0.72) * twilight * cover * 0.48;
+      col += vec3(0.35, 0.18, 0.48) * 0.08 * (1.0-day);
+      col += vec3(0.86, 0.92, 1.0) * limb * cover * day * 0.18;
+
+      float alpha = cover * (0.16 + 0.74*day + twilight*0.20);
+      alpha += limb * cover * 0.18;
+      gl_FragColor = vec4(col, clamp(alpha * 0.82, 0.0, 0.92));
+    }
+  `
+});
+const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(R_PLANET*1.014, 128, 128), cloudMat);
+cloudMesh.renderOrder = 1;
+planetSystem.add(cloudMesh);
+
+/* ---------- 大氣輝光：亮、銳的晨昏弧 ---------- */
+const atmoMat = new THREE.ShaderMaterial({
+  transparent:true,
+  blending:THREE.AdditiveBlending,
+  side:THREE.BackSide,
+  depthWrite:false,
+  uniforms:{
+    uLightDir:{value:LIGHT_DIR},
+    uCamPos:{value:camera.position}
+  },
+  vertexShader:`
+    varying vec3 vWorldNormal;
+    varying vec3 vWorldPos;
+    void main(){
+      vWorldNormal = normalize(mat3(modelMatrix) * normal);
+      vec4 wp = modelMatrix * vec4(position,1.0);
+      vWorldPos = wp.xyz;
+      gl_Position = projectionMatrix * viewMatrix * wp;
+    }
+  `,
+  fragmentShader:`
+    precision highp float;
+    varying vec3 vWorldNormal;
+    varying vec3 vWorldPos;
+    uniform vec3 uLightDir;
+    uniform vec3 uCamPos;
+    void main(){
+      vec3 viewDir = normalize(uCamPos - vWorldPos);
+      vec3 n = normalize(vWorldNormal);
+      float vd = abs(dot(n, viewDir));
+      float outer = pow(1.0 - vd, 2.15);
+      float needle = pow(1.0 - vd, 8.5);
+      float lit = smoothstep(-0.22, 0.62, dot(n, uLightDir));
+      float dawn = smoothstep(0.42, -0.05, abs(dot(n, uLightDir)));
+      vec3 blueAir = vec3(0.48, 0.62, 1.0);
+      vec3 pinkAir = vec3(1.0, 0.70, 0.95);
+      vec3 violetAir = vec3(0.38, 0.18, 0.76);
+      vec3 col = mix(violetAir, mix(blueAir, pinkAir, dawn*0.75), lit);
+      col += vec3(1.0, 0.94, 0.98) * needle * lit * 1.2;
+      float alpha = outer * (0.10 + 0.90*lit) + needle * (0.42 + dawn*0.36);
+      gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
+    }
+  `
+});
+const atmoMesh = new THREE.Mesh(new THREE.SphereGeometry(R_PLANET*1.09, 96, 96), atmoMat);
+atmoMesh.renderOrder = 2;
+planetSystem.add(atmoMesh);
+
+/* ---------- 星環：近切平視角，束狀絲帶掠過行星前方 ---------- */
+const RING_IN = R_PLANET*1.35, RING_OUT = R_PLANET*2.0;
+const ringMat = new THREE.ShaderMaterial({
+  transparent:true,
+  side:THREE.DoubleSide,
+  depthWrite:false,
+  uniforms:{
+    uLightDirLocal:{value:new THREE.Vector3()},
+    uInner:{value:RING_IN},
+    uOuter:{value:RING_OUT},
+    uPlanetR:{value:R_PLANET}
+  },
+  vertexShader:`
+    varying vec3 vLocalPos;
+    void main(){
+      vLocalPos = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    }
+  `,
+  fragmentShader:`
+    precision highp float;
+    varying vec3 vLocalPos;
+    uniform vec3 uLightDirLocal;
+    uniform float uInner;
+    uniform float uOuter;
+    uniform float uPlanetR;
+
+    float band(float r, float c, float w, float b){
+      float d = (r - c)/w;
+      return b * exp(-d*d*4.0);
+    }
+    float hash1(float n){
+      return fract(sin(n)*43758.5453123);
+    }
+    float radialGrain(float r, float a){
+      float cell = floor(r*780.0);
+      float fine = hash1(cell*1.37 + floor(a*18.0)*9.1);
+      return mix(0.62, 1.16, fine);
+    }
+
+    void main(){
+      float r = length(vLocalPos.xy);
+      float rn = (r - uInner)/(uOuter - uInner);
+      if(rn < 0.0 || rn > 1.0) discard;
+      float ang = atan(vLocalPos.y, vLocalPos.x);
+
+      /* 束狀環群：窄環密集成帶（近切平時呈絲帶束） */
+      float edge = smoothstep(0.0,0.045,rn) * smoothstep(1.0,0.94,rn);
+      float a = 0.030 * edge; /* 微弱連續底 */
+      a += band(rn, 0.055, 0.018, 0.24);
+      a += band(rn, 0.120, 0.010, 0.18);
+      a += band(rn, 0.205, 0.030, 0.32);
+      a += band(rn, 0.305, 0.010, 0.20);
+      a += band(rn, 0.405, 0.024, 0.30);
+      a += band(rn, 0.510, 0.012, 0.18);
+      a += band(rn, 0.615, 0.018, 0.28);
+      a += band(rn, 0.725, 0.016, 0.22);
+      a += band(rn, 0.850, 0.030, 0.20);
+      a += band(rn, 0.952, 0.034, 0.64); /* ε 環 */
+      float hair = pow(abs(sin(rn*920.0 + sin(ang*7.0)*1.7)), 28.0) * 0.15;
+      float clump = 0.78 + 0.22*sin(ang*18.0 + rn*48.0) + 0.08*sin(ang*47.0);
+      a = (a + hair) * radialGrain(rn, ang) * clump;
+      a = clamp(a, 0.0, 1.0);
+      if(a < 0.004) discard;
+
+      /* 行星本影 */
+      vec3 p = vLocalPos;
+      float s = dot(p, uLightDirLocal);
+      float perp = length(p - s*uLightDirLocal);
+      float shadow = 1.0;
+      if(s < 0.0){
+        shadow = smoothstep(uPlanetR*0.92, uPlanetR*1.12, perp);
+      }
+
+      /* 銀白絲帶，亮帶滲淡粉紫，暗帶偏石墨灰。 */
+      vec3 graphite = vec3(0.30, 0.32, 0.37);
+      vec3 silver = vec3(0.82, 0.85, 0.92);
+      vec3 pearl = vec3(0.96, 0.95, 1.0);
+      vec3 pinkTint = vec3(0.94, 0.72, 0.90);
+      float pinkMix = band(rn, 0.952, 0.070, 1.0) + band(rn, 0.405, 0.045, 0.48);
+      float bright = clamp(a*1.35 + hair*1.8, 0.0, 1.0);
+      vec3 col = mix(graphite, mix(silver, pearl, bright), 0.82);
+      col = mix(col, pinkTint, clamp(pinkMix,0.0,0.55));
+
+      float frontGlow = smoothstep(-0.35, 0.75, sin(ang + 0.55));
+      gl_FragColor = vec4(col * (0.46 + 0.54*shadow), a * edge * (0.18 + 0.62*shadow + 0.15*frontGlow));
+    }
+  `
+});
+const ringMesh = new THREE.Mesh(new THREE.RingGeometry(RING_IN, RING_OUT, 256, 1), ringMat);
+ringMesh.rotation.x = Math.PI/2;
+ringMesh.renderOrder = 3; /* 最後渲染：前段環弧蓋過行星，後段被深度測試遮蔽 */
+planetSystem.add(ringMesh);
+
+(function updateRingLight(){
+  planetSystem.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(ringMesh.matrixWorld).invert();
+  const v = LIGHT_DIR.clone().transformDirection(inv);
+  ringMat.uniforms.uLightDirLocal.value.copy(v.normalize());
+})();
+
+/* ================= 恆星與眩光 ================= */
+function makeRadialTexture(size, stops){
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+  stops.forEach(s=>g.addColorStop(s[0], s[1]));
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,size,size);
+  return new THREE.CanvasTexture(c);
+}
+function makeStreakTexture(){
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 32;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0,0,256,0);
+  g.addColorStop(0,'rgba(160,200,255,0)');
+  g.addColorStop(0.5,'rgba(210,230,255,0.85)');
+  g.addColorStop(1,'rgba(160,200,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,8,256,16);
+  return new THREE.CanvasTexture(c);
+}
+const sunCore = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: makeRadialTexture(256, [[0,'rgba(255,255,250,1)'],[0.2,'rgba(255,248,235,0.9)'],[0.5,'rgba(255,235,210,0.25)'],[1,'rgba(255,225,190,0)']]),
+  blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false
+}));
+sunCore.position.copy(SUN_POS);
+sunCore.scale.set(55,55,1);
+scene.add(sunCore);
+
+const sunHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: makeRadialTexture(256, [[0,'rgba(255,240,225,0.22)'],[0.5,'rgba(255,220,200,0.07)'],[1,'rgba(255,210,190,0)']]),
+  blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false
+}));
+sunHalo.position.copy(SUN_POS);
+sunHalo.scale.set(180,180,1);
+scene.add(sunHalo);
+
+const sunStreak = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: makeStreakTexture(),
+  blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false, opacity:0.40
+}));
+sunStreak.position.copy(SUN_POS);
+sunStreak.scale.set(340, 22, 1);
+scene.add(sunStreak);
+
+/* ================= 星空：稀疏深沉 + 銀河帶 ================= */
+function starShaderMat(){
+  return new THREE.ShaderMaterial({
+    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+    uniforms:{ uTime:{value:0} },
+    vertexShader:`
+      attribute float aSize;
+      attribute vec3 color;
+      varying vec3 vColor;
+      varying float vTw;
+      uniform float uTime;
+      void main(){
+        vColor = color;
+        vTw = 0.78 + 0.22*sin(uTime*1.2 + position.x*12.7 + position.y*7.3);
+        vec4 mv = modelViewMatrix * vec4(position,1.0);
+        gl_PointSize = aSize * (300.0 / -mv.z);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader:`
+      precision highp float;
+      varying vec3 vColor;
+      varying float vTw;
+      void main(){
+        vec2 uv = gl_PointCoord - 0.5;
+        float d = length(uv);
+        float a = smoothstep(0.5, 0.0, d);
+        a = a*a;
+        gl_FragColor = vec4(vColor * vTw, a);
+      }
+    `
+  });
+}
+function fillStarAttrs(geo, count, posFn, radius, sizeMin, sizeMax, brightness){
+  const pos = new Float32Array(count*3);
+  const col = new Float32Array(count*3);
+  const sz  = new Float32Array(count);
+  for(let i=0;i<count;i++){
+    const dir = posFn();
+    pos[i*3]=dir.x*radius; pos[i*3+1]=dir.y*radius; pos[i*3+2]=dir.z*radius;
+    const b = brightness * (0.35 + Math.random()*0.65);
+    const r2 = Math.random();
+    let cr=1,cg=1,cb=1;
+    if(r2<0.12){cr=0.75;cg=0.85;cb=1.0;}
+    else if(r2<0.2){cr=1.0;cg=0.88;cb=0.72;}
+    else if(r2<0.26){cr=0.9;cg=0.72;cb=1.0;}
+    col[i*3]=cr*b; col[i*3+1]=cg*b; col[i*3+2]=cb*b;
+    sz[i] = sizeMin + Math.random()*(sizeMax-sizeMin);
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col,3));
+  geo.setAttribute('aSize', new THREE.BufferAttribute(sz,1));
+}
+function uniformDir(){
+  const u = Math.random()*2-1;
+  const phi = Math.random()*Math.PI*2;
+  const s = Math.sqrt(1-u*u);
+  return new THREE.Vector3(s*Math.cos(phi), u, s*Math.sin(phi));
+}
+const starMats = [];
+function addStarLayer(count, radius, sMin, sMax, bright, posFn){
+  const geo = new THREE.BufferGeometry();
+  fillStarAttrs(geo, count, posFn || uniformDir, radius, sMin, sMax, bright);
+  const mat = starShaderMat();
+  starMats.push(mat);
+  scene.add(new THREE.Points(geo, mat));
+}
+/* 三層全天星：較 v1 稀疏、深沉 */
+addStarLayer(1300, 700, 0.7, 1.4, 0.40);
+addStarLayer(550, 420, 1.0, 2.0, 0.62);
+addStarLayer(160, 240, 1.6, 3.0, 0.90);
+
+/* 銀河帶：恆星密集於一條斜貫上空的大圓帶 */
+const MW_NORMAL = new THREE.Vector3(0.55, 0.62, 0.56).normalize();
+const mwA = new THREE.Vector3(1,0,0).cross(MW_NORMAL).normalize();
+const mwB = MW_NORMAL.clone().cross(mwA).normalize();
+function bandDir(){
+  const phi = Math.random()*Math.PI*2;
+  const g = (Math.random()+Math.random()+Math.random()-1.5) * 0.085;
+  return mwA.clone().multiplyScalar(Math.cos(phi))
+        .add(mwB.clone().multiplyScalar(Math.sin(phi)))
+        .add(MW_NORMAL.clone().multiplyScalar(g))
+        .normalize();
+}
+addStarLayer(2100, 760, 0.5, 1.1, 0.30, bandDir);
+addStarLayer(500, 750, 0.9, 1.6, 0.45, bandDir);
+
+/* 銀河輝光：沿帶分布的拉長柔光面片 */
+function addBandGlow(phi, scale, colorPrefix, opacity){
+  const dir = mwA.clone().multiplyScalar(Math.cos(phi))
+        .add(mwB.clone().multiplyScalar(Math.sin(phi))).normalize();
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeRadialTexture(256, [[0, colorPrefix+(opacity)+')'],[0.5, colorPrefix+(opacity*0.35)+')'],[1, colorPrefix+'0)']]),
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  spr.position.copy(dir.multiplyScalar(740));
+  spr.scale.set(scale, scale*0.32, 1);
+  scene.add(spr);
+}
+addBandGlow(0.4, 620, 'rgba(190,195,215,', 0.075);
+addBandGlow(1.1, 540, 'rgba(170,160,210,', 0.06);
+addBandGlow(1.9, 580, 'rgba(200,190,220,', 0.055);
+addBandGlow(2.7, 480, 'rgba(150,140,200,', 0.05);
+
+/* 一抹遠星雲（紫） */
+(function(){
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeRadialTexture(256, [[0,'rgba(130,70,190,0.07)'],[0.5,'rgba(130,70,190,0.025)'],[1,'rgba(130,70,190,0)']]),
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  spr.position.set(-380, 60, -560);
+  spr.scale.set(560, 380, 1);
+  scene.add(spr);
+})();
+
+/* ================= 視角控制 ================= */
+const MAX_YAW = THREE.MathUtils.degToRad(60);
+const MAX_PITCH = THREE.MathUtils.degToRad(35);
+let mouseNX = 0, mouseNY = 0;
+let curNX = 0, curNY = 0;
+
+function onPointer(x, y){
+  mouseNX = (x / window.innerWidth) * 2 - 1;
+  mouseNY = (y / window.innerHeight) * 2 - 1;
+}
+window.addEventListener('mousemove', e=>onPointer(e.clientX, e.clientY), {passive:true});
+window.addEventListener('touchmove', e=>{
+  if(e.touches.length) onPointer(e.touches[0].clientX, e.touches[0].clientY);
+}, {passive:true});
+
+const glassInner = document.querySelector('#glass .inner');
+camera.rotation.order = 'YXZ';
+
+const swayScale = reduceMotion ? 0 : 1;
+const clock = new THREE.Clock();
+const SPIN_RATE = 0.0030;
+
+function animate(){
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  const dt = Math.min(clock.getDelta(), 0.05) || 0.016;
+
+  curNX += (mouseNX - curNX) * 0.045;
+  curNY += (mouseNY - curNY) * 0.045;
+
+  const swayYaw   = swayScale * (0.006*Math.sin(t*0.13) + 0.0028*Math.sin(t*0.31+1.7));
+  const swayPitch = swayScale * (0.005*Math.sin(t*0.17+0.6) + 0.002*Math.sin(t*0.41));
+  const swayRoll  = swayScale * (0.009*Math.sin(t*0.09+2.1));
+  const bobX = swayScale * 0.10*Math.sin(t*0.19);
+  const bobY = swayScale * 0.14*Math.sin(t*0.23+1.1);
+
+  camera.rotation.y = -curNX * MAX_YAW + swayYaw;
+  camera.rotation.x = -curNY * MAX_PITCH + swayPitch;
+  camera.rotation.z = swayRoll;
+  camera.position.x = -curNX * 1.3 + bobX;
+  camera.position.y =  curNY * -0.85 + bobY;
+
+  glassInner.style.transform = `translate(${curNX*9}px, ${curNY*6}px)`;
+
+  surfaceMesh.rotation.y += SPIN_RATE * dt;
+  cloudMesh.rotation.y += SPIN_RATE * 0.55 * dt;
+
+  cloudMat.uniforms.uTime.value = reduceMotion ? 0 : t;
+  starMats.forEach(m=>m.uniforms.uTime.value = t);
+
+  renderer.render(scene, camera);
+}
+animate();
+
+/* 鉚釘生成 */
+(function(){
+  const frame = document.getElementById('frame');
+  for(let i=0;i<18;i++){
+    const b = document.createElement('div');
+    b.className = 'bolt';
+    b.style.transform = `rotate(${i*20}deg) translateY(calc(var(--frame-d) * -0.535))`;
+    frame.appendChild(b);
+  }
+})();
+
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+setTimeout(()=>{ document.getElementById('hint').classList.add('gone'); }, 5000);
+
+})();
+</script>
+</body>
+</html>

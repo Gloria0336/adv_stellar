@@ -1,0 +1,47 @@
+{
+  "_doc": "母艦甲板初始狀態。座標 [row,col]，0..5，row0 為前段(裂潮重創處)。格位地形與相鄰combo見 data/modules.json。",
+  "_ascii": [
+    "row0  [E/破][E/破][K/破][K/破][E/破][E/破]   ← 前段：裂潮重創，全鎖",
+    "row1  [E/破][.破 ][S/破][S/破][.破 ][E/破]   ← S=船脊(主反應爐理想位，需先修復)",
+    "row2  [E/船員][.][C艦橋][C船長][.][E/破]",
+    "row3  [E/船員][.][C休眠][C醫療][登陸][E]",
+    "row4  [E/船員][生維][應急爐][貨艙][.][E]",
+    "row5  [E/破][E][E][E][E][E/破]                ← 外緣，部分鎖"
+  ],
+  "grid_size": [6, 6],
+  "max_grid": [12, 12],
+
+  "tile_traits": {
+    "hull_edge": [[0,0],[0,5],[1,0],[1,5],[2,0],[2,5],[3,0],[3,5],[4,0],[4,5],[5,0],[5,1],[5,2],[5,3],[5,4],[5,5]],
+    "spine": [[1,2],[1,3]],
+    "coolant": [[0,2],[0,3]],
+    "core": [[2,2],[2,3],[3,2],[3,3]]
+  },
+
+  "modules": [
+    { "id": "bridge", "name": "艦橋", "type": "command", "pos": [2,2], "size": [1,1], "active": true, "note": "附基礎分析終端" },
+    { "id": "captain_quarters", "name": "船長室", "type": "habitat", "pos": [2,3], "size": [1,1], "active": true },
+    { "id": "cryo", "name": "休眠艙", "type": "habitat", "pos": [3,2], "size": [1,1], "active": true, "occupants": ["comms_officer","scientist"] },
+    { "id": "medbay", "name": "醫療艙", "type": "habitat", "pos": [3,3], "size": [1,1], "active": true },
+    { "id": "crew_1", "name": "船員艙", "type": "habitat", "pos": [2,1], "size": [1,1], "active": true },
+    { "id": "crew_2", "name": "船員艙", "type": "habitat", "pos": [3,1], "size": [1,1], "active": true },
+    { "id": "crew_3", "name": "船員艙", "type": "habitat", "pos": [4,4], "size": [1,1], "active": true },
+    { "id": "life_support", "name": "生命維持系統", "type": "habitat", "pos": [4,1], "size": [1,1], "active": true, "_note": "降載；提供 pop_cap" },
+    { "id": "reactor_emergency", "name": "應急能源核心", "type": "energy", "pos": [4,2], "size": [1,1], "active": true, "produces": { "flux": 3 } },
+    { "id": "cargo", "name": "貨艙(20%)", "type": "storage", "pos": [4,3], "size": [1,1], "active": true, "capacity_pct": 20 },
+    { "id": "landing_pod", "name": "登陸艙", "type": "utility", "pos": [3,4], "size": [1,1], "active": true, "note": "含隨船基礎工具組(早期維修/製造)" }
+  ],
+
+  "locked": [
+    { "pos": [0,0], "reason": "前段破損(裂潮)" }, { "pos": [0,1], "reason": "前段破損" },
+    { "pos": [0,2], "reason": "前段破損(冷卻區)" }, { "pos": [0,3], "reason": "前段破損(冷卻區)" },
+    { "pos": [0,4], "reason": "前段破損" }, { "pos": [0,5], "reason": "前段破損" },
+    { "pos": [1,0], "reason": "前段破損" }, { "pos": [1,1], "reason": "前段破損" },
+    { "pos": [1,2], "reason": "前段破損(船脊・主反應爐理想位)" }, { "pos": [1,3], "reason": "前段破損(船脊)" },
+    { "pos": [1,4], "reason": "前段破損" }, { "pos": [1,5], "reason": "前段破損" },
+    { "pos": [2,5], "reason": "外緣破損" }, { "pos": [5,0], "reason": "外緣破損" }, { "pos": [5,5], "reason": "外緣破損" }
+  ],
+
+  "outposts": [],
+  "computed": { "power_balance": 0, "pop_cap": 8, "active_combos": [], "note": "進基地時由 GM 依 data/modules.json 重算" }
+}

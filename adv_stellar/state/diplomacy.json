@@ -1,0 +1,6 @@
+{
+  "_doc": "物種態度。初始皆未接觸。『天外即惡』為共同底色，可逐步改善。",
+  "species_relations": {},
+  "treaties": [],
+  "note": "首次接觸某物種時由 GM 依 data/species.json 建立其條目。"
+}

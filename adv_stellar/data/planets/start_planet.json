@@ -1,0 +1,23 @@
+{
+  "_doc": "起始世界：飛船被其引力鎖定的星球。P0 第一個可探索目標。名稱待玩家命名。",
+  "id": "start_planet",
+  "name": "（待命名）捕獲星",
+  "env": { "gravity": "中等偏高", "atmosphere": "稀薄可勉強活動", "temperature": "寒冷", "anomaly_zone": false },
+  "danger": { "level": 2, "threats": ["極端氣候", "零星裂潮殘跡", "未知地表生物"] },
+  "nodes": [
+    { "id": "landing_zone", "name": "迫降採樣點", "desc": "登陸艙可達的安全立足點。", "resources": ["alloy_scrap", "ice"] },
+    { "id": "wreck_field", "name": "墜物原野", "desc": "散落著與你同遭裂潮的不明殘骸——既是資源也是線索。", "resources": ["alloy_scrap", "data_fragment"], "event_hint": "可能觸發裂潮殘跡遭遇" },
+    { "id": "ridge_signal", "name": "山脊訊號源", "desc": "偵測到微弱的非自然訊號，來源不明。", "lock": "需 sensor/識域 提升或科技 starmap_1" }
+  ],
+  "events": [
+    { "id": "first_landing", "trigger": "首次登陸", "desc": "確認地表可行動，建立第一個資源來源；AI 提醒能源吃緊。" },
+    { "id": "rift_remnant", "trigger": "靠近 wreck_field", "desc": "遭遇零星裂潮殘跡（弱）。可戰可避。早期僅呈現為不明異象蜂群。" }
+  ],
+  "resources": [
+    { "id": "alloy_scrap", "name": "合金殘料", "yields": "alloy" },
+    { "id": "ice", "name": "冰", "yields": "water/fuel 前驅" },
+    { "id": "data_fragment", "name": "資料碎片", "yields": "data" }
+  ],
+  "species": [],
+  "outpost": false
+}

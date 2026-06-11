@@ -1,0 +1,65 @@
+{
+  "_doc": "技能星網。星網輻射拓樸：原生核心→五原生柱→碰撞處變異→三深層變異(唯一三選一)。分支網狀、點數＋條件解鎖。修正值受 dice.json 上限約束；節點以質變為主。",
+  "point_sources": ["經驗", "研究", "探索里程碑", "量子通訊解鎖"],
+
+  "core": {
+    "id": "origin", "name": "覺醒原點", "desc": "原生異能火種，所有路徑由此向外。", "cost": 0
+  },
+
+  "pillars": {
+    "sense":   { "id": "sense",   "name": "識域", "pillar": "探索", "tech_cross": "sensor_comms",
+      "nodes": [
+        { "id": "sense_1", "name": "異象感應", "tier": 1, "prereq": ["origin"], "cost": 1, "effect": "偵測周遭異常與威脅；相關判定 +1" },
+        { "id": "sense_2", "name": "結構透視", "tier": 2, "prereq": ["sense_1"], "cost": 1, "effect": "看穿艙壁/地形結構，利於修復與探索" }
+      ], "expand": "tier3-5：危機預知→弱點解析→全域掃描（待擴充）" },
+    "kinesis": { "id": "kinesis", "name": "操軛", "pillar": "戰鬥/通用", "tech_cross": "structure_material",
+      "nodes": [
+        { "id": "kinesis_1", "name": "念動推擊", "tier": 1, "prereq": ["origin"], "cost": 1, "effect": "遠端推/移物體；近戰或母艦反擊 +1" },
+        { "id": "kinesis_2", "name": "力場屏障", "tier": 2, "prereq": ["kinesis_1"], "cost": 1, "effect": "短暫護盾，抵禦裂潮或環境傷害" }
+      ], "expand": "tier3-5：能量束→物質重塑→異象爆發（待擴充）" },
+    "resonance": { "id": "resonance", "name": "同調", "pillar": "科技協同", "tech_cross": "propulsion_power",
+      "nodes": [
+        { "id": "resonance_1", "name": "模塊感應", "tier": 1, "prereq": ["origin"], "cost": 1, "effect": "與機械/AI 共鳴，診斷模塊狀態" },
+        { "id": "resonance_2", "name": "能量充能", "tier": 2, "prereq": ["resonance_1"], "cost": 1, "effect": "相鄰能源模塊產量 +20%（條件式，不入擲骰）" }
+      ], "expand": "tier3-5：模塊共鳴→系統過載→奇點同調（待擴充）" },
+    "psyche": { "id": "psyche", "name": "魂語", "pillar": "社交/招募", "tech_cross": "sensor_comms",
+      "nodes": [
+        { "id": "psyche_1", "name": "共感", "tier": 1, "prereq": ["origin"], "cost": 1, "effect": "讀取情緒/意圖；社交判定 +1" },
+        { "id": "psyche_2", "name": "跨種溝通", "tier": 2, "prereq": ["psyche_1"], "cost": 1, "effect": "與未知物種建立基本溝通，緩和『天外即惡』敵意" }
+      ], "expand": "tier3-5：心靈感應→安撫敵意生物→集體意識（待擴充）" },
+    "soma": { "id": "soma", "name": "蛻體", "pillar": "生存", "tech_cross": "life_production",
+      "nodes": [
+        { "id": "soma_1", "name": "環境適應", "tier": 1, "prereq": ["origin"], "cost": 1, "effect": "短時抵抗毒大氣/高重力/真空" },
+        { "id": "soma_2", "name": "再生", "tier": 2, "prereq": ["soma_1"], "cost": 1, "effect": "戰後/探索後緩慢回復 HP" }
+      ], "expand": "tier3-5：強化代謝→體質重塑→異質共生軀（待擴充）" }
+  },
+
+  "variants": {
+    "_doc": "變異＝兩柱碰撞處的未知能力。解鎖需『兩柱前置＋科技前置＋敘事條件』三者。",
+    "foresight": { "id": "foresight", "name": "觀界", "collision": ["sense","kinesis"],
+      "effect": "預知/機率操弄；每場景可重擲一次骰",
+      "unlock": { "skills": ["sense_2","kinesis_2"], "tech": ["research_adv"], "narrative": "高階研究解析" } },
+    "pyroflux": { "id": "pyroflux", "name": "燼能", "collision": ["kinesis","resonance"],
+      "effect": "操控熱/輻射/能量場，可武裝化",
+      "unlock": { "skills": ["kinesis_2","resonance_2"], "tech": ["reactor_restore"], "narrative": "主反應爐重啟" } },
+    "netmind": { "id": "netmind", "name": "網識", "collision": ["resonance","psyche"],
+      "effect": "接通 AI/集體意識；量子共鳴",
+      "unlock": { "skills": ["resonance_2","psyche_2"], "tech": ["quantum_comms"], "narrative": "量子通訊上線＋喚醒通訊官" } },
+    "symbiosis": { "id": "symbiosis", "name": "共生", "collision": ["psyche","soma"],
+      "effect": "與異星生命結絆、召喚操使",
+      "unlock": { "skills": ["psyche_2","soma_2"], "tech": ["xeno_biology"], "narrative": "接觸特定物種" } },
+    "anomaly_sense": { "id": "anomaly_sense", "name": "異感", "collision": ["soma","sense"],
+      "effect": "感知異象帶、看見不可見；可採集裂潮/力量樣本",
+      "unlock": { "skills": ["soma_2","sense_2"], "tech": ["anomaly_analysis"], "narrative": "進入異象帶取樣" } }
+  },
+
+  "deep_mutations": {
+    "_doc": "三選一・唯一性・不可回頭。皆需把那股力量『解析到底』(canon hidden 全解)。對應終局立場。",
+    "exclusive": true,
+    "options": [
+      { "id": "riftstep", "name": "維裂", "stance": "掌控", "effect": "瞬移/相位/摺疊空間，駕馭力量的空間之力（高風險）" },
+      { "id": "silence", "name": "靜寂", "stance": "否定", "effect": "壓制異能/製造死域/消音力量與裂潮，拒絕並保護世界" },
+      { "id": "harmonize", "name": "諧振", "stance": "共融", "effect": "與這股力量共融、理解、繼承，成為橋" }
+    ]
+  }
+}

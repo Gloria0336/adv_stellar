@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "character": { "name": "漂流者", "level": 1, "hp": 30, "psi": 10, "exp": 0 },
+  "attributes": { "body": 1, "mind": 2, "tech": 1, "presence": 0 },
+  "location": { "region": "orbit", "planet": "start_planet", "node": "bridge" },
+  "resources": { "flux": 3, "alloy": 0, "data": 0, "anomaly": 0, "fuel": 1, "food": 5 },
+  "transport_compat": 0,
+  "ship_repair": { "hull": 15, "reactor": 0, "lab": 0, "life_support": 30, "target": 100 },
+  "survivors": { "comms_officer": "cryo_critical", "scientist": "cryo_critical" },
+  "mission": { "surface": "repair", "mid": "gather_ge", "deep": "locked" },
+  "rift_tide": { "threat_level": 1, "next_surge": "event_driven", "scar_known": false },
+  "skill_points": 1,
+  "tech_points": 1,
+  "flags": { "intro_done": false, "planet_named": false }
+}

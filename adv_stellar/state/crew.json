@@ -1,0 +1,10 @@
+{
+  "_doc": "船員。倖存者喚醒見 §3.2；各掛敘事條件。",
+  "crew": [
+    { "id": "player", "name": "漂流者", "role": "艦長/主角", "status": "active", "assigned_module": null },
+    { "id": "comms_officer", "name": "通訊官", "role": "通訊", "status": "cryo_critical",
+      "narrative_hook": "喚醒後解鎖量子通訊/網識；死亡則相關進度大幅延後", "assigned_module": null },
+    { "id": "scientist", "name": "科學家", "role": "研究", "status": "cryo_critical",
+      "narrative_hook": "喚醒後提升研究解析效率/變異馴化；死亡則相關進度大幅延後", "assigned_module": null }
+  ]
+}

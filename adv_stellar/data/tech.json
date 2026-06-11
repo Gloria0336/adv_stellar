@@ -1,0 +1,37 @@
+{
+  "_doc": "科技樹四大領域。解鎖模塊/修船進度/擴充上限/變異科技前置。研究=解析未知。",
+  "point_sources": ["研究模塊產出", "探索情報", "拆解殘骸與異物"],
+
+  "propulsion_power": {
+    "name": "推進・能源",
+    "techs": [
+      { "id": "reactor_restore", "name": "主反應爐重啟", "cost": 3, "prereq": [], "unlocks": ["解除能源限制", "module:reactor_main", "variant:pyroflux(科技前置)"], "note": "第一關鍵目標" },
+      { "id": "power_storage", "name": "能源儲存", "cost": 2, "prereq": ["reactor_restore"], "unlocks": ["module:capacitor"] },
+      { "id": "jump_compat_1", "name": "傳送相容性 I", "cost": 2, "prereq": [], "unlocks": ["transport_compat +1：解鎖近距星球"] }
+    ]
+  },
+  "structure_material": {
+    "name": "結構・材料",
+    "techs": [
+      { "id": "hull_repair_1", "name": "船體修復 I", "cost": 2, "prereq": [], "unlocks": ["清理/修復鎖定格", "grid 6x6→8x8(部分)"] },
+      { "id": "alloy_refine", "name": "合金精煉", "cost": 2, "prereq": ["hull_repair_1"], "unlocks": ["module:refinery", "外殼升級"] },
+      { "id": "defense_frame", "name": "防禦構裝", "cost": 2, "prereq": [], "unlocks": ["module:turret", "module:shield_node"], "note": "母艦防衛" }
+    ]
+  },
+  "life_production": {
+    "name": "生命・生產",
+    "techs": [
+      { "id": "life_support_1", "name": "生命維持修復 I", "cost": 2, "prereq": [], "unlocks": ["人口上限 +幾位（喚醒倖存者）"] },
+      { "id": "xeno_biology", "name": "異星生物學", "cost": 3, "prereq": ["life_support_1"], "unlocks": ["variant:symbiosis(科技前置)", "module:hydroponics"] }
+    ]
+  },
+  "sensor_comms": {
+    "name": "感測・通訊",
+    "techs": [
+      { "id": "starmap_1", "name": "星圖解析", "cost": 1, "prereq": [], "unlocks": ["顯示鄰近星球與威脅"] },
+      { "id": "research_adv", "name": "進階研究", "cost": 2, "prereq": ["starmap_1"], "unlocks": ["variant:foresight(科技前置)", "module:lab_adv"] },
+      { "id": "anomaly_analysis", "name": "異象解析", "cost": 3, "prereq": ["research_adv"], "unlocks": ["variant:anomaly_sense(科技前置)", "逐步解鎖 canon hidden #1"] },
+      { "id": "quantum_comms", "name": "量子通訊", "cost": 3, "prereq": ["research_adv"], "unlocks": ["variant:netmind(科技前置)", "母星情報/劇情/遠程支援", "終局返航抉擇"], "narrative_req": "喚醒通訊官（死亡則走低效替代路線）" }
+    ]
+  }
+}

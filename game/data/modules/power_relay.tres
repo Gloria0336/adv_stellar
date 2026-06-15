@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"power_relay"
+name_key = "module.power_relay"
+category = &"power"
+w = 1
+h = 1
+flux = 0
+cost = 15
+is_relay = true
+color = Color(0.55, 0.45, 0.9, 1)

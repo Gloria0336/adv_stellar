@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CrewData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/crew/crew_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"med_luna"
+name_key = "crew.med_luna.name"
+profession = &"medic"
+base_efficiency = 1.0
+trait_brave = -0.1
+trait_gluttonous = 0.3
+trait_social = 0.4
+trait_workaholic = -0.2
+trait_tough = -0.1
+likes = Array[StringName]([&"socialize", &"eat"])
+dislikes = Array[StringName]([&"flee"])
+bio_key = "crew.med_luna.bio"
+catchphrase_key = "crew.med_luna.phrase"
+portrait_color = Color(0.4, 0.8, 0.9, 1)

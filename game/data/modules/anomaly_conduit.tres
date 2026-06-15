@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"anomaly_conduit"
+name_key = "module.anomaly_conduit"
+category = &"special"
+w = 1
+h = 1
+flux = 0
+cost = 80
+is_relay = true
+color = Color(0.7, 0.4, 0.9, 1)

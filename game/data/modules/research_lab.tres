@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"research_lab"
+name_key = "module.research_lab"
+category = &"research"
+w = 1
+h = 2
+flux = -25
+cost = 80
+terrain_pref = &"core"
+color = Color(0.4, 0.7, 0.85, 1)

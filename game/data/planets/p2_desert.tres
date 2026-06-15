@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="PlanetData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/starmap/planet_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"p2_desert"
+name_key = "planet.p2_desert"
+order = 1
+unlock_compat = 30
+danger_level = 3
+danger_key = "danger.env"
+biome_key = "biome.desert"
+region_layers = 4
+has_anomaly = true
+specialty_keys = PackedStringArray("specialty.rare_salt", "specialty.pure_alloy")
+color = Color(0.8, 0.68, 0.4, 1)
+display_radius = 32.0
+orbit_radius = 270.0
+orbit_angle_deg = 325.0

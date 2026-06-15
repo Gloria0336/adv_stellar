@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/combat/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ranged_blaster"
+name_key = "weapon.ranged"
+is_ranged = true
+damage = 18
+cooldown = 0.32
+projectile_speed = 640.0
+projectile_life = 0.9
+color = Color(0.5, 0.95, 1.0, 1)

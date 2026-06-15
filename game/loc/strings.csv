@@ -3,3 +3,161 @@ ui.boot.title,星際漂流,Stellar Drift
 ui.common.confirm,確認,Confirm
 ui.common.cancel,取消,Cancel
 ui.common.back,返回,Back
+module.main_reactor,主反應爐,Main Reactor
+module.solar_panel,恆星能板,Solar Panel
+module.oxygen_gen,製氧機,Oxygen Generator
+module.crew_quarters,小船員艙,Crew Quarters
+module.smelter,合金冶煉爐,Alloy Smelter
+module.power_relay,電力中繼節點,Power Relay
+module.cafeteria,餐廳,Cafeteria
+module.morale_bay,士氣/休憩艙,Morale Lounge
+module.emergency_core,應急能源核心,Emergency Core
+module.aux_reactor,副反應爐,Auxiliary Reactor
+module.hydroponics,水耕艙,Hydroponics Bay
+module.harvester_bay,採集無人機庫,Harvester Drone Bay
+module.factory,綜合工廠,Fabricator
+module.research_lab,研究實驗艙,Research Lab
+module.anomaly_lab,異象解析室,Anomaly Lab
+module.quantum_comms,量子通訊陣列,Quantum Comms Array
+module.starchart_terminal,星圖解析終端,Starchart Terminal
+module.xeno_lab,物種研究語言室,Xeno Lab
+module.large_quarters,大船員艙,Large Quarters
+module.cryo_pod,休眠艙,Cryo Pod
+module.medbay,醫療艙,Medbay
+module.life_support,維生系統核心,Life Support Core
+module.turret,砲塔,Turret
+module.shield_generator,力場產生器,Shield Generator
+module.point_defense,點防攔截器,Point Defense
+module.repair_drone_bay,修補無人機庫,Repair Drone Bay
+module.bulkhead,封艙門/氣閘,Bulkhead Airlock
+module.laser_cannon,雷射砲,Laser Cannon
+module.anomaly_conduit,異象導管,Anomaly Conduit
+module.resonance_core,共鳴核心,Resonance Core
+module.fusion_reactor,融合反應堆,Fusion Reactor
+module.anomaly_stabilizer,異象帶穩定器,Anomaly Stabilizer
+module.ai_core,AI核心艙,AI Core
+module.cat.power,能源,Power
+module.cat.production,生產採集,Production
+module.cat.research,研究,Research
+module.cat.life,生命居住,Life
+module.cat.defense,防禦,Defense
+module.cat.special,特殊,Special
+ui.base.blueprint,藍圖模式,Blueprint
+ui.base.clock,船時,Ship Time
+rift.swarm,衝鋒群體,Rusher
+rift.breaker,破壞者,Breaker
+ui.wave.prep,⚠ 裂潮來襲！整備中 — 按 K 開始（共 %d 波）,Rift incoming! Prep — press K to begin (%d waves)
+ui.wave.active,第 %d/%d 波 ・ 剩餘 %d ・ HP %d,Wave %d/%d · enemies %d · HP %d
+ui.wave.inter,第 %d 波清除！下一波接近…,Wave %d cleared! Next wave incoming...
+ui.wave.victory,✅ 防衛成功！受損模塊需重修,Defense held! Repair damaged modules
+planet.p1_jungle,原始叢林星,Verdant Jungle
+planet.p2_desert,荒漠鹽潬星,Salt Desert
+planet.p3_anomaly,異象重災星,Anomaly Wastes
+biome.jungle,生態繁盛原始叢林,Primeval Jungle
+biome.desert,風蝕鹽潬乾旱遺跡,Wind-Eroded Salt Flats
+biome.anomaly,接近裂潮異象重災帶,Anomaly Disaster Zone
+danger.bio,掠食生物,Predators
+danger.env,高溫乾旱沙暴,Heat & Drought
+danger.anomaly,異象污染裂潮,Anomaly Corruption
+specialty.bio_sample,生物樣本,Bio Samples
+specialty.food_stock,糧食原料,Food Stock
+specialty.rare_salt,稀有礦鹽,Rare Mineral Salts
+specialty.pure_alloy,高純合金原料,High-Purity Alloy
+specialty.anomaly_crystal,高純異象結晶,Anomaly Crystals
+specialty.rift_residue,裂潮殘留物,Rift Residue
+ui.starmap.title,星系圖,Star Map
+ui.starmap.mothership,母船,Mothership
+ui.starmap.compat,相容性,Compatibility
+ui.starmap.need_compat,需相容性 %d（差 %d）,Needs Compat %d (short %d)
+ui.starmap.danger,危險度,Danger
+ui.starmap.biome,生態,Biome
+ui.starmap.layers,區域層,Region Layers
+ui.starmap.anomaly_zone,異象帶,Anomaly Zone
+ui.starmap.has_anomaly,有,Yes
+ui.starmap.no_anomaly,無,None
+ui.starmap.specialty,特產,Specialty
+ui.starmap.depart,登陸出航,Launch & Land
+ui.starmap.select_planet,點選一顆星球查看,Click a planet for details
+ui.starmap.open_hint,按 E 開啟星系圖,Press E: Star Map
+ui.starmap.console,AI 控制台,AI Console
+ui.starmap.selected_hint,已選定,Selected
+res.alloy,合金,Alloy
+ui.exp.region,遠征區域,Expedition Zone
+ui.exp.oxygen,氧氣,Oxygen
+ui.exp.backpack,背包,Backpack
+ui.exp.pod,撤離倉,Pod
+ui.exp.load,載入,Load
+ui.exp.extract,撤離,Extract
+ui.exp.full,背包已滿,Backpack Full
+ui.exp.loaded,已載入撤離倉,Loaded into pod
+ui.exp.extracted,撤離成功,Extracted
+ui.exp.died,缺氧倒下 — 全損,Out of Oxygen — All Lost
+ui.exp.hint,WASD 移動 · Shift 衝刺 · 左鍵攻擊 · 滾輪/1·2 換武器 · Q 異能 · Tab 異能輪 · 撤離點 E/F · 下行點 G,WASD · Shift sprint · LMB attack · Wheel/1·2 weapon · Q ability · Tab wheel · pad E/F · descent G
+ui.exp.layer,層,Layer
+ui.exp.descent,下行點,Descent
+ui.exp.descend,深入下一層,Go Deeper
+ui.exp.descended,深入下一層！,Descending!
+ui.exp.weapon,武器,Weapon
+ui.exp.weap_keys,1·2·滾輪,1·2·Wheel
+ui.exp.wheel_hint,滾輪選擇・放開 Tab 確定,Scroll to pick - release Tab
+weapon.melee,近戰光刃,Blade
+weapon.ranged,脈衝槍,Blaster
+ui.exp.hp,生命,HP
+ui.exp.psi,念力,PSI
+ui.exp.cant,無法施放（PSI 不足或冷卻中）,Cannot cast (PSI or cooldown)
+ability.dash,衝刺,Dash
+ability.scan,掃描,Scan
+ability.pulse,脈衝,Pulse
+ui.base.inventory,母船庫存,Ship Inventory
+ui.base.empty,（空）,(empty)
+crew.axis.energy,精力,Energy
+crew.axis.satiation,飽食,Satiation
+crew.axis.social,社交,Social
+crew.axis.morale,士氣,Morale
+crew.axis.fear,恐懼,Fear
+crew.axis.health,健康,Health
+crew.mood.neutral,平靜,Content
+crew.mood.happy,高興,Happy
+crew.mood.inspired,幹勁十足,Inspired
+crew.mood.tired,疲累,Tired
+crew.mood.hungry,飢餓,Hungry
+crew.mood.lonely,寂寞,Lonely
+crew.mood.disgruntled,不滿,Disgruntled
+crew.mood.bored,無聊,Bored
+crew.mood.hurt,受傷,Hurt
+crew.mood.afraid,害怕,Afraid
+crew.activity.idle,閒置,Idle
+crew.activity.work,工作中,Working
+crew.activity.eat,用餐中,Eating
+crew.activity.sleep,睡眠中,Sleeping
+crew.activity.socialize,交誼中,Socializing
+crew.activity.relax,休閒中,Relaxing
+crew.activity.flee,逃竄中,Fleeing
+crew.activity.seek_medical,前往醫療,Seeking Medical
+crew.quip.neutral,（哼著小調）,(humming along)
+crew.quip.happy,今天真是好日子！,What a great day!
+crew.quip.inspired,交給我吧 馬力全開！,Leave it to me — full power!
+crew.quip.tired,我需要……瞇一下……,I need... a nap...
+crew.quip.hungry,肚子在抗議了。,My stomach is protesting.
+crew.quip.lonely,有人在嗎……,Anyone around...?
+crew.quip.disgruntled,這待遇我可受夠了。,I have had enough of this.
+crew.quip.bored,好無聊喔……,So bored...
+crew.quip.hurt,我……需要治療。,I... need treatment.
+crew.quip.afraid,快跑啊啊啊！,Run!!!
+crew.profession.engineer,工程師,Engineer
+crew.profession.weapon_officer,武器官,Weapons Officer
+crew.profession.biologist,生物學家,Biologist
+crew.profession.scientist,科學家,Scientist
+crew.profession.comms_officer,通訊官,Comms Officer
+crew.profession.medic,醫官,Medic
+crew.profession.navigator,領航員,Navigator
+crew.profession.marine,陸戰隊,Marine
+crew.profession.diplomat,外交官,Diplomat
+crew.profession.logistics,後勤官,Logistics Officer
+crew.panel.activity,目前活動：,Activity:
+crew.eng_rivet.name,鉚釘,Rivet
+crew.eng_rivet.bio,沉默寡言的老工程師 把扳手看得比人重 獨處時最自在。,A quiet veteran engineer who trusts his wrench more than people. Happiest left alone.
+crew.eng_rivet.phrase,機器不會騙人。,Machines never lie.
+crew.med_luna.name,露娜,Luna
+crew.med_luna.bio,開朗的隨船醫官 愛照顧大家也愛蹭點心 聽到警報腿先軟。,A cheerful ship medic who loves caring for the crew and snacking. Alarms make her knees buckle.
+crew.med_luna.phrase,先吃飽 再救人！,Eat first then save lives!

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"solar_panel"
+name_key = "module.solar_panel"
+category = &"power"
+w = 1
+h = 1
+flux = 10
+cost = 30
+terrain_pref = &"hull_edge"
+terrain_bonus_flux = 10
+color = Color(0.95, 0.85, 0.3, 1)

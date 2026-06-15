@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"laser_cannon"
+name_key = "module.laser_cannon"
+category = &"defense"
+w = 1
+h = 1
+flux = -50
+cost = 120
+terrain_pref = &"hull_edge"
+color = Color(0.9, 0.35, 0.45, 1)

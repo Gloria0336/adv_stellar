@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"shield_generator"
+name_key = "module.shield_generator"
+category = &"defense"
+w = 1
+h = 2
+flux = -50
+cost = 140
+terrain_pref = &"hull_edge"
+color = Color(0.4, 0.6, 0.85, 1)

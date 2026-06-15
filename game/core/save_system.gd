@@ -11,6 +11,9 @@ var run: Dictionary = {}    # 當前遠征臨時狀態（死亡清空）
 
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(SAVE_DIR)
+	# 開機載入永久層（meta/world 永不損，§13-10.A）。run 層的中途續玩留後續。
+	meta = load_layer("meta")
+	world = load_layer("world")
 
 func save_all() -> void:
 	save_layer("meta", meta)

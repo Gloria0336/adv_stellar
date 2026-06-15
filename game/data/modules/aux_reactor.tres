@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"aux_reactor"
+name_key = "module.aux_reactor"
+category = &"power"
+w = 1
+h = 2
+flux = 60
+cost = 180
+terrain_pref = &"spine"
+terrain_bonus_flux = 20
+color = Color(0.9, 0.6, 0.3, 1)

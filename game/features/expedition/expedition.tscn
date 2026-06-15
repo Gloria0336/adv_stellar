@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c0expedition0stellar1"]
+
+[ext_resource type="Script" path="res://features/expedition/expedition.gd" id="1_exp"]
+
+[node name="Expedition" type="Node2D"]
+script = ExtResource("1_exp")

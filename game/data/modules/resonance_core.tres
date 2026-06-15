@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"resonance_core"
+name_key = "module.resonance_core"
+category = &"special"
+w = 2
+h = 2
+flux = -50
+cost = 200
+terrain_pref = &"core"
+color = Color(0.65, 0.45, 0.95, 1)

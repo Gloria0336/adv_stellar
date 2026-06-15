@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"factory"
+name_key = "module.factory"
+category = &"production"
+w = 2
+h = 2
+flux = -25
+cost = 120
+color = Color(0.7, 0.55, 0.35, 1)

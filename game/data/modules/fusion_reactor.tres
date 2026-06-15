@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"fusion_reactor"
+name_key = "module.fusion_reactor"
+category = &"special"
+w = 2
+h = 3
+flux = 300
+cost = 500
+terrain_pref = &"spine"
+terrain_bonus_flux = 80
+color = Color(1.0, 0.7, 0.3, 1)

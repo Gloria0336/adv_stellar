@@ -16,7 +16,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="星際漂流 (Stellar Drift)"
 config/description="Roguelite extraction base-builder. 設計：GAME_DESIGN_STEAM.md"
-run/main_scene="res://scenes/boot.tscn"
+run/main_scene="res://features/build/base.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 
 [autoload]
@@ -26,6 +26,11 @@ RNG="*res://core/rng_service.gd"
 Save="*res://core/save_system.gd"
 DataRegistry="*res://core/data_registry.gd"
 Localization="*res://core/localization.gd"
+ShipClock="*res://core/ship_clock.gd"
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://loc/strings.zh_TW.translation", "res://loc/strings.en.translation")
 
 [rendering]
 

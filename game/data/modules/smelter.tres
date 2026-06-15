@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"smelter"
+name_key = "module.smelter"
+category = &"production"
+w = 2
+h = 2
+flux = -50
+cost = 120
+terrain_pref = &"cooling"
+terrain_bonus_flux = 20
+color = Color(0.75, 0.35, 0.3, 1)

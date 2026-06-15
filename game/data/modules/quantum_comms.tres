@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"quantum_comms"
+name_key = "module.quantum_comms"
+category = &"research"
+w = 2
+h = 2
+flux = -50
+cost = 160
+terrain_pref = &"hull_edge"
+color = Color(0.35, 0.6, 0.9, 1)

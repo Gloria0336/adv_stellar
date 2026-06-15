@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"crew_quarters"
+name_key = "module.crew_quarters"
+category = &"life"
+w = 1
+h = 1
+flux = -10
+cost = 40
+color = Color(0.45, 0.8, 0.5, 1)

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"harvester_bay"
+name_key = "module.harvester_bay"
+category = &"production"
+w = 1
+h = 1
+flux = -25
+cost = 50
+terrain_pref = &"hull_edge"
+color = Color(0.6, 0.65, 0.5, 1)

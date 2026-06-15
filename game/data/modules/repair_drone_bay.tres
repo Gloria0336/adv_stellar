@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"repair_drone_bay"
+name_key = "module.repair_drone_bay"
+category = &"defense"
+w = 1
+h = 2
+flux = -25
+cost = 90
+color = Color(0.6, 0.6, 0.7, 1)

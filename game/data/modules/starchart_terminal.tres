@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"starchart_terminal"
+name_key = "module.starchart_terminal"
+category = &"research"
+w = 1
+h = 1
+flux = -10
+cost = 40
+color = Color(0.5, 0.65, 0.85, 1)

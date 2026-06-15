@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="PlanetData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/starmap/planet_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"p3_anomaly"
+name_key = "planet.p3_anomaly"
+order = 2
+unlock_compat = 60
+danger_level = 5
+danger_key = "danger.anomaly"
+biome_key = "biome.anomaly"
+region_layers = 5
+has_anomaly = true
+specialty_keys = PackedStringArray("specialty.anomaly_crystal", "specialty.rift_residue")
+color = Color(0.62, 0.4, 0.78, 1)
+display_radius = 35.0
+orbit_radius = 360.0
+orbit_angle_deg = 80.0

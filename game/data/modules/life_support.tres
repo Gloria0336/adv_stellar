@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModuleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/build/module_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"life_support"
+name_key = "module.life_support"
+category = &"life"
+w = 1
+h = 2
+flux = -50
+cost = 120
+terrain_pref = &"core"
+color = Color(0.5, 0.85, 0.7, 1)

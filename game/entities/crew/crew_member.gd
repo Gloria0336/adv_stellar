@@ -44,8 +44,12 @@ var nav: NavigationCore
 var grid: GridModel
 var grid_origin := Vector2.ZERO
 var cell_size := 48
-var elevator_x: PackedInt32Array = PackedInt32Array()
+var elevator_cells: Array = []   # 本層電梯格 Array[Vector2i]（逃竄/跨層 transit 目標）
 var move := MovementCore.new()
+# 跨層（GD §5/§6）：船員可去別層的模塊，會自己走到電梯、搭電梯切層、再走到模塊。
+var home_deck: int = 0           # 船員目前所在層
+var world                        # base hub（跨層尋路服務・duck-typed：crew_find_module / crew_enter_deck）
+var _transit_deck: int = -1      # >=0：正前往本層電梯，準備搭去此目標層
 var _arrived := true             # 是否已抵達目前活動的目的地
 var _dest_cell: Variant = null   # 目前鎖定的目的地格（每 tick 重評，回應新建/拆除的模塊）
 var facing := Vector2.RIGHT      # 移動朝向（畫朝向指示用）
@@ -76,12 +80,12 @@ func _ready() -> void:
 	_setup_visual()
 
 ## base 注入尋路環境（在 add_child 之後呼叫）。
-func setup_nav(p_nav: NavigationCore, p_grid: GridModel, origin: Vector2, p_cell: int, p_elev: PackedInt32Array) -> void:
+func setup_nav(p_nav: NavigationCore, p_grid: GridModel, origin: Vector2, p_cell: int, p_elev_cells: Array) -> void:
 	nav = p_nav
 	grid = p_grid
 	grid_origin = origin
 	cell_size = p_cell
-	elevator_x = p_elev
+	elevator_cells = p_elev_cells
 
 func _process(delta: float) -> void:
 	tick(delta)
@@ -99,6 +103,16 @@ func tick(delta: float) -> void:
 	if not _arrived and move.has_path():
 		if move.advance(self, delta):
 			_arrived = true
+	# 3b. 抵達本層電梯且正要跨層 → 搭電梯切到目標層（由 world 重設環境、落在該層電梯格）。
+	if _arrived and _transit_deck >= 0 and world != null:
+		var here := _current_cell()
+		if _is_elevator_cell(here):
+			var td := _transit_deck
+			_transit_deck = -1
+			_dest_cell = null
+			world.crew_enter_deck(self, td, here.x)
+		else:
+			_transit_deck = -1   # 沒走到電梯（無路）→ 放棄跨層，下 tick 重評
 	var moved := position - _prev_pos
 	_prev_pos = position
 	if moved.length() > 0.01:
@@ -172,12 +186,13 @@ func _decide_state() -> StringName:
 
 # --- 移動目的地 ---
 
-## 每 tick 重評目的地：目的地有變（換狀態、模塊新建/拆除）才重新規劃路徑。
-## 模塊目標只走到「與模塊同甲板相鄰」的存取格（不隔牆）；無對應模塊則原地進行。
+## 每 tick 重評目的地（換狀態、模塊新建/拆除才重規劃）。模塊可能在別層：
+## 同層 → 走到模塊相鄰存取格；別層 → 先走到本層電梯（tick 3b 到站搭乘切層）。
 func _update_destination() -> void:
 	var state := fsm.current
-	# 逃竄：往最近電梯（單點目標）。
+	# 逃竄：往本層最近電梯（不搭乘，只躲到垂直動線）。
 	if state == S_FLEE:
+		_transit_deck = -1
 		var cell: Variant = _nearest_elevator_cell()
 		if cell == _dest_cell:
 			return
@@ -188,25 +203,46 @@ func _update_destination() -> void:
 		else:
 			_set_path(nav.find_path(_current_cell(), cell))
 		return
-	# 模塊目標（工作/用餐/睡眠/交誼…）：走到同甲板相鄰存取格。
-	var pl := _find_module_placement(_module_id_for_state(state))
-	var key: Variant = pl.origin if not pl.is_empty() else null
-	if key == _dest_cell:
+	# 模塊目標：查全船最近者（跨層）。
+	var id := _module_id_for_state(state)
+	var found: Dictionary = world.crew_find_module(id, home_deck, _current_cell()) if (id != &"" and world != null) else {}
+	if found.is_empty():
+		if _dest_cell != null:
+			_dest_cell = null
+			move.clear()
+			_arrived = true
 		return
-	_dest_cell = key
-	if pl.is_empty() or nav == null:
-		move.clear()
-		_arrived = true
-	else:
+	var target_deck: int = int(found["deck"])
+	var pl: Dictionary = found["placement"]
+	if target_deck == home_deck:
+		# 同層：走到模塊相鄰存取格。
+		_transit_deck = -1
+		var key: Variant = pl.origin
+		if key == _dest_cell:
+			return
+		_dest_cell = key
 		_set_path(nav.find_path_to_adjacent(_current_cell(), pl.cells))
+	else:
+		# 別層：先走到本層最近電梯，標記要搭去 target_deck。
+		var ev: Variant = _nearest_elevator_cell()
+		var key2: Variant = ["elev", target_deck, ev]
+		if key2 == _dest_cell:
+			return
+		_dest_cell = key2
+		_transit_deck = target_deck
+		if ev == null or nav == null:
+			move.clear()
+			_arrived = true
+		else:
+			_set_path(nav.find_path(_current_cell(), ev))
 
-## 該狀態要前往的模塊 id（取最近且已放置者）；無則 &""。
+## 該狀態要前往的模塊 id（全船存在即可，跨層交由 world 判定）；無則 &""。
 func _module_id_for_state(state: StringName) -> StringName:
 	if state == S_WORK:
 		return assigned_module
-	if DEST_MODULES.has(state):
+	if DEST_MODULES.has(state) and world != null:
 		for id: StringName in DEST_MODULES[state]:
-			if not _find_module_placement(id).is_empty():
+			if not world.crew_find_module(id, home_deck, _current_cell()).is_empty():
 				return id
 	return &""
 
@@ -228,30 +264,22 @@ func _current_cell() -> Vector2i:
 func _cell_center(c: Vector2i) -> Vector2:
 	return grid_origin + Vector2(c.x * cell_size + cell_size * 0.5, c.y * cell_size + cell_size * 0.5)
 
-## 最近一個指定 id 的已放置模塊（placement dict；找不到回 {}）。
-func _find_module_placement(id: StringName) -> Dictionary:
-	if grid == null or id == &"":
-		return {}
-	var best: Dictionary = {}
-	var best_d := INF
-	var here := _current_cell()
-	for p in grid.placements:
-		if p.module.id == id:
-			var d := Vector2(p.origin - here).length()
-			if d < best_d:
-				best_d = d
-				best = p
-	return best
-
+## 本層離自己最近的電梯格（Vector2i）；無電梯回 null。
 func _nearest_elevator_cell() -> Variant:
-	if elevator_x.is_empty():
+	if elevator_cells.is_empty():
 		return null
 	var here := _current_cell()
-	var bx := elevator_x[0]
-	for ex in elevator_x:
-		if absi(ex - here.x) < absi(bx - here.x):
-			bx = ex
-	return Vector2i(bx, here.y)
+	var best: Vector2i = elevator_cells[0]
+	var best_d := INF
+	for e: Vector2i in elevator_cells:
+		var dd := Vector2(e - here).length()
+		if dd < best_d:
+			best_d = dd
+			best = e
+	return best
+
+func _is_elevator_cell(c: Vector2i) -> bool:
+	return c in elevator_cells
 
 # --- 活動效果 ---
 

@@ -1,8 +1,8 @@
 class_name NavigationCore
 extends RefCounted
-## 母船甲板尋路（entities/_core・封裝 AStar2D）。
-## 甲板物理分隔：同層水平/垂直恆連通；跨層（甲板邊界）邊只在固定電梯欄連通。
-## 由 GridModel 建圖：EMPTY 且未被模塊佔據 ＝ 可走格。grid 變動後需 build() 重建。
+## 母船甲板尋路（entities/_core・封裝 AStar2D）。單層俯視：當前層的可走格全 4-連通
+## （跨層由電梯離散切換、不在尋路圖內）。由 GridModel 建圖：EMPTY 且未被模塊佔據 ＝ 可走格。
+## grid 變動後需 build() 重建。elevator_x 參數保留相容、單層模型下不使用。
 
 const NO_CELL := Vector2i(-9999, -9999)
 
@@ -24,14 +24,11 @@ func build(grid: GridModel, elevator_x: PackedInt32Array) -> void:
 		for x in _cols:
 			if not _astar.has_point(_id(x, y)):
 				continue
-			# 右鄰：同層恆連。
+			# 右鄰、下鄰：當前層可走格恆連通。
 			if x + 1 < _cols and _astar.has_point(_id(x + 1, y)):
 				_astar.connect_points(_id(x, y), _id(x + 1, y))
-			# 下鄰：跨甲板邊界只在電梯欄連通。
 			if y + 1 < _rows and _astar.has_point(_id(x, y + 1)):
-				var crosses := DeckLayers.layer_of(y) != DeckLayers.layer_of(y + 1)
-				if not crosses or x in _elev:
-					_astar.connect_points(_id(x, y), _id(x, y + 1))
+				_astar.connect_points(_id(x, y), _id(x, y + 1))
 
 ## 回傳格座標路徑（含起點）。目的地若不可走，導向最近可走鄰格。無路回空。
 func find_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
@@ -54,7 +51,7 @@ func find_path_to_adjacent(from: Vector2i, targets: Array) -> Array[Vector2i]:
 			best = path
 	return best
 
-## 模塊 footprint 的合法存取格：正交相鄰、可走，且該邊不跨甲板牆。
+## 模塊 footprint 的合法存取格：正交相鄰且可走。
 func _access_cells(targets: Array) -> Array[Vector2i]:
 	var seen := {}
 	var out: Array[Vector2i] = []
@@ -62,16 +59,14 @@ func _access_cells(targets: Array) -> Array[Vector2i]:
 		for n in [Vector2i(c.x - 1, c.y), Vector2i(c.x + 1, c.y), Vector2i(c.x, c.y - 1), Vector2i(c.x, c.y + 1)]:
 			if seen.has(n):
 				continue
-			# 垂直相鄰若落在不同甲板（中間有牆）＝隔牆，排除。
-			if n.y != c.y and DeckLayers.layer_of(n.y) != DeckLayers.layer_of(c.y):
-				continue
 			if _astar.has_point(_id(n.x, n.y)):
 				seen[n] = true
 				out.append(n)
 	return out
 
 func _walkable(grid: GridModel, c: Vector2i) -> bool:
-	return grid.cell_state(c) == GridModel.Cell.EMPTY and not grid.is_occupied(c)
+	# 模塊可穿過 → 只看是否為甲板可走格（EMPTY），不再排除被佔據格。
+	return grid.in_bounds(c) and grid.cell_state(c) == GridModel.Cell.EMPTY
 
 func _nearest_walkable(c: Vector2i) -> Vector2i:
 	if c.x >= 0 and c.x < _cols and c.y >= 0 and c.y < _rows and _astar.has_point(_id(c.x, c.y)):
